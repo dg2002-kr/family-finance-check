@@ -11,6 +11,7 @@ import argparse
 import csv
 import datetime as dt
 import html
+import json
 import statistics
 import sys
 from collections import defaultdict
@@ -99,6 +100,33 @@ tfoot td { font-weight: 700; background: #FAFAF7; }
 }
 .footer strong { color: var(--sub-coral); }
 .muted-text { color: var(--text-secondary); font-size: 13px; }
+
+/* ---- 눌러서 펼치는 상세 ---- */
+tr[data-kind] { cursor: pointer; }
+tr[data-kind]:hover { background: var(--accent-pale); }
+tr[data-kind] td:first-child::before {
+  content: "▸ "; color: var(--accent); font-weight: 700;
+}
+tr[data-kind].open td:first-child::before { content: "▾ "; }
+tr[data-kind].open { background: var(--accent-pale); }
+tr.detail > td { background: #FAFAF7; padding: 14px 16px; }
+.detail-title { font-weight: 700; color: var(--accent); margin-bottom: 8px; font-size: 14px; }
+.detail-table { width: 100%; border-collapse: collapse; background: transparent; }
+.detail-table th {
+  background: transparent; color: var(--text-secondary); font-size: 12px;
+  padding: 5px 8px; border-bottom: 1px solid var(--border);
+}
+.detail-table td {
+  font-size: 13px; padding: 5px 8px; border-bottom: 1px dotted var(--border);
+}
+.detail-note { color: var(--text-secondary); font-size: 12px; margin-top: 8px; }
+.dup-tag {
+  color: var(--sub-coral); font-weight: 700; font-size: 11px;
+  border: 1px solid var(--sub-coral); border-radius: 3px; padding: 0 4px; margin-left: 4px;
+}
+.hint {
+  font-size: 13px; color: var(--text-secondary); margin: 0 0 10px;
+}
 
 @media (max-width: 640px) {
   body { padding: 16px 12px 48px; }
@@ -261,7 +289,7 @@ def 표_고정비(고정비들, 관측개월, 중복구독):
     for f in 고정비들:
         배지 = ("" if f["확신"] == "높음"
                 else '<span class="muted-text"> (확인 필요)</span>')
-        행.append(f"""<tr>
+        행.append(f"""<tr data-kind="fixed" data-key="{esc(f["가맹점"])}" data-key2="{esc(f["사람"])}">
   <td>{esc(f["가맹점"])}{배지}<br><span class="muted-text">{esc(f["근거"])}</span></td>
   <td>{esc(f["사람"])}</td>
   <td class="num">{돈(f["월금액"])}</td>
@@ -292,7 +320,7 @@ def 표_전월대비(이번, 지난, 행들):
         비율 = "새로 생김" if r["비율"] is None else f"{r['비율']:+.1f}%"
         if r["이번달"] == 0:
             비율 = "이번 달 없음"
-        tr.append(f"""<tr>
+        tr.append(f"""<tr data-kind="delta" data-key="{esc(r["카테고리"])}">
   <td>{esc(r["카테고리"])}</td>
   <td class="num">{돈(r["지난달"])}</td>
   <td class="num">{돈(r["이번달"])}</td>
@@ -317,7 +345,7 @@ def 표_구성원(A):
     for 이름 in A["사람들"]:
         금 = A["사람별"][이름]
         비중 = 0 if 총 == 0 else 금 / 총 * 100
-        행.append(f"""<tr>
+        행.append(f"""<tr data-kind="member" data-key="{esc(이름)}">
   <td>{esc(이름)}</td>
   <td class="num">{돈(금)}</td>
   <td class="num">{비중:.1f}%</td>
@@ -341,7 +369,7 @@ def 표_카테고리(A):
     행 = []
     for 이름, 금 in 항목:
         비중 = 0 if 총 == 0 else 금 / 총 * 100
-        행.append(f"""<tr>
+        행.append(f"""<tr data-kind="category" data-key="{esc(이름)}">
   <td>{esc(이름)}</td>
   <td class="num">{돈(금)}</td>
   <td class="num">{비중:.1f}%</td>
@@ -368,6 +396,91 @@ def 표_월별(A):
 
 
 # ============================================================================
+# 상세 보기용 데이터 — 파일 하나로 열리도록 HTML 안에 직접 넣는다
+# (file:// 로 열면 브라우저가 바깥 파일을 못 읽기 때문)
+# ============================================================================
+상세개월한도 = 12   # 자료가 쌓여도 파일이 무거워지지 않게 최근 12개월만 담는다
+
+
+def 상세데이터(거래들, 달들):
+    담을달 = set(달들[-상세개월한도:])
+    데이터 = [{
+        "d": t["날짜"], "p": t["사람"], "m": t["가맹점"], "a": t["금액"],
+        "c": t["카테고리"], "k": t["구분"], "f": t["원본파일"],
+        "x": 1 if t["중복의심"] == "Y" else 0,
+    } for t in 거래들 if t["날짜"][:7] in 담을달]
+    # </script> 로 HTML이 일찍 끊기지 않게 < 를 이스케이프한다
+    return json.dumps(데이터, ensure_ascii=False).replace("<", "\\u003c")
+
+
+JS = """
+(function () {
+  var TX = JSON.parse(document.getElementById('tx-data').textContent);
+  var MONTHS = JSON.parse(document.getElementById('month-data').textContent);
+
+  function won(n) { return Math.abs(n).toLocaleString('ko-KR') + '원'; }
+
+  function pick(kind, key, key2) {
+    if (kind === 'member')   return TX.filter(function (t) { return t.p === key; });
+    if (kind === 'category') return TX.filter(function (t) { return t.c === key; });
+    if (kind === 'fixed')    return TX.filter(function (t) { return t.m === key && t.p === key2; });
+    if (kind === 'delta')    return TX.filter(function (t) {
+      return t.c === key && (t.d.slice(0, 7) === MONTHS.cur || t.d.slice(0, 7) === MONTHS.prev);
+    });
+    return [];
+  }
+
+  function table(rows, title) {
+    rows = rows.slice().sort(function (a, b) { return a.d < b.d ? 1 : -1; });
+    var total = 0;
+    rows.forEach(function (t) { if (t.k === '지출') total += -t.a; });
+    var shown = rows.slice(0, 50);
+    var body = shown.map(function (t) {
+      var dup = t.x ? '<span class="dup-tag">중복 의심</span>' : '';
+      var amt = t.k === '수입' ? '+' + won(t.a) : won(t.a);
+      return '<tr><td>' + t.d + '</td><td>' + t.m + dup + '</td><td>' + t.c +
+             '</td><td>' + t.p + '</td><td style="text-align:right">' + amt +
+             '</td><td class="muted-text">' + t.f + '</td></tr>';
+    }).join('');
+    var note = rows.length > shown.length
+      ? '<div class="detail-note">' + rows.length + '건 중 최근 50건만 보여드려요. 전체는 out/거래통합.csv 에 있습니다.</div>'
+      : '';
+    return '<div class="detail-title">' + title + ' — ' + rows.length + '건, 지출 합계 ' +
+           total.toLocaleString('ko-KR') + '원</div>' +
+           '<table class="detail-table"><thead><tr><th>날짜</th><th>가맹점</th><th>카테고리</th>' +
+           '<th>사람</th><th style="text-align:right">금액</th><th>원본</th></tr></thead>' +
+           '<tbody>' + body + '</tbody></table>' + note;
+  }
+
+  function close(tr) {
+    var next = tr.nextElementSibling;
+    if (next && next.classList.contains('detail')) next.remove();
+    tr.classList.remove('open');
+  }
+
+  document.querySelectorAll('tr[data-kind]').forEach(function (tr) {
+    tr.addEventListener('click', function () {
+      var wasOpen = tr.classList.contains('open');
+      // 같은 표 안에서 열려 있던 다른 상세는 닫는다
+      tr.closest('table').querySelectorAll('tr.open').forEach(close);
+      if (wasOpen) return;
+
+      var d = tr.dataset;
+      var rows = pick(d.kind, d.key, d.key2);
+      var title = d.kind === 'fixed' ? d.key + ' (' + d.key2 + ') 결제 이력'
+                : d.kind === 'delta' ? d.key + ' — ' + MONTHS.prev + ' · ' + MONTHS.cur
+                : d.key;
+      var detail = document.createElement('tr');
+      detail.className = 'detail';
+      detail.innerHTML = '<td colspan="' + tr.children.length + '">' + table(rows, title) + '</td>';
+      tr.after(detail);
+      tr.classList.add('open');
+    });
+  });
+})();
+"""
+
+
 def html만들기(A, 거래들, 입력파일):
     파일수 = len({t["원본파일"].split(":")[0] for t in 거래들})
     중복 = [t for t in 거래들 if t["중복의심"] == "Y"]
@@ -421,6 +534,8 @@ def html만들기(A, 거래들, 입력파일):
 
   {중복안내}
 
+  <p class="hint">표에서 <strong>▸ 표시가 있는 줄을 누르면</strong> 그 안에 어떤 거래가 들어 있는지 펼쳐집니다.</p>
+
   <h2>구성원별 지출</h2>
   {표_구성원(A)}
 
@@ -447,6 +562,10 @@ def html만들기(A, 거래들, 입력파일):
   </div>
 
 </div>
+
+<script type="application/json" id="tx-data">{상세데이터(거래들, A["달들"])}</script>
+<script type="application/json" id="month-data">{json.dumps({"cur": 이번, "prev": 지난}, ensure_ascii=False)}</script>
+<script>{JS}</script>
 </body>
 </html>"""
 
