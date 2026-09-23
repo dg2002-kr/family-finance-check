@@ -560,13 +560,10 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
   font-weight: 800; font-size: 13.5px; white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
-.grp-bar { height: 7px; border-radius: 999px; background: #E9EDF1; margin-top: 7px; overflow: hidden; }
 .gdot { width: 9px; height: 9px; border-radius: 3px; flex: none; display: inline-block; }
-.grp-bar i { display: block; height: 100%; border-radius: 999px; background: var(--brand); }
-.grp.open > .grp-bar i { background: var(--brand-deep); }
 .grp-items { margin-top: 10px; }
-.mixwrap { margin-top: 5px; transition: width .3s cubic-bezier(.4,0,.2,1); }
-.mix { display: flex; height: 7px; border-radius: 999px; overflow: hidden; }
+.mixwrap { margin-top: 7px; transition: width .3s cubic-bezier(.4,0,.2,1); }
+.mix { display: flex; height: 9px; border-radius: 999px; overflow: hidden; background: #E9EDF1; }
 .mix span {
   display: block; height: 100%;
   background-image: linear-gradient(180deg, rgba(255,255,255,.2), rgba(0,0,0,.05));
@@ -2238,9 +2235,7 @@ JS = """
           '<span class="grp-c">' + g.n + '건</span>' +
           '<span class="grp-v">' + won(g.sum) + '</span>' +
         '</div>' +
-        '<div class="grp-bar"><i style="width:' + Math.min(100, g.sum / max * 100).toFixed(1) +
-          '%;background:' + 색 + '"></i></div>' +
-        누구몫(g.rows, Math.min(100, g.sum / max * 100)) +
+        누구몫(g.rows, Math.min(100, g.sum / max * 100), 색) +
         '<div class="grp-items" hidden></div>' +
       '</div>';
     }).join('');
@@ -2261,7 +2256,7 @@ JS = """
 
   // 이 묶음이 누구를 위해 쓰인 돈인지 — 위 막대와 같은 폭으로 그린다.
   // 100% 폭으로 그리면 금액이 더 큰 것처럼 보인다.
-  function 누구몫(rows, 폭) {
+  function 누구몫(rows, 폭, 바탕) {
     var 몫 = {}, 총 = 0;
     rows.forEach(function (t) {
       if (t.k !== '지출') return;
@@ -2270,8 +2265,19 @@ JS = """
       총 += -t.a;
     });
     var 이름들 = Object.keys(몫);
-    if (이름들.length < 2 || 총 <= 0) return '';
+    var 띠 = 'width:' + (폭 || 100).toFixed(1) + '%';
+
+    // 소비가 아닌 묶음(수입·이체)이나 한 사람 몫이면 한 가지 색으로만 그린다
+    if (총 <= 0) {
+      return '<div class="mixwrap" style="' + 띠 + '"><div class="mix">' +
+             '<span style="width:100%;background:' + (바탕 || '#C7CDD6') + '"></span></div></div>';
+    }
     이름들.sort(function (a, b) { return 몫[b] - 몫[a]; });
+    if (이름들.length < 2) {
+      return '<div class="mixwrap" style="' + 띠 + '"><div class="mix">' +
+             '<span style="width:100%;background:' + (WHOCOLOR[이름들[0]] || 바탕 || '#C7CDD6') +
+             '" title="' + esc(이름들[0]) + ' ' + won(몫[이름들[0]]) + '"></span></div></div>';
+    }
 
     var 칸 = 이름들.map(function (n) {
       return '<span style="width:' + (몫[n] / 총 * 100).toFixed(2) + '%;background:' +
@@ -2285,8 +2291,7 @@ JS = """
              esc(n.split('_')[0]) + ' <b>' + (몫[n] / 총 * 100).toFixed(0) + '%</b></span>';
     }).join('');
     var 더 = 이름들.length > 5 ? '<span class="mixc muted-text">외 ' + (이름들.length - 5) + '명</span>' : '';
-    return '<div class="mixwrap" style="width:' + (폭 || 100).toFixed(1) + '%">' +
-           '<div class="mix">' + 칸 + '</div></div>' +
+    return '<div class="mixwrap" style="' + 띠 + '"><div class="mix">' + 칸 + '</div></div>' +
            '<div class="mixlab">' + 칩 + 더 + '</div>';
   }
 
