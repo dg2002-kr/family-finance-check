@@ -2211,8 +2211,21 @@ JS = """
     if (!r) return;
     var 몸 = r.nextElementSibling;
     if (!몸 || !몸.classList.contains('acc-body')) return;
-    몸.hidden = !몸.hidden;
-    r.classList.toggle('open', !몸.hidden);
+    var 펼침 = 몸.hidden;
+
+    // 유형(부동산·금융자산·현금)은 한 번에 하나만 펼친다.
+    // 여러 개가 열려 있으면 어느 도넛을 보여줄지 알 수 없고 목록도 길어진다.
+    if (펼침 && r.dataset.donut !== undefined) {
+      var 안 = r.closest('.card');
+      if (안) 안.querySelectorAll('.row[data-acc][data-donut].open').forEach(function (o) {
+        o.classList.remove('open');
+        var m = o.nextElementSibling;
+        if (m && m.classList.contains('acc-body')) m.hidden = true;
+      });
+    }
+
+    몸.hidden = !펼침;
+    r.classList.toggle('open', 펼침);
     var 카드 = r.closest('.card');
     if (!카드) return;
     카드.classList.toggle('focus', !!카드.querySelector('.row[data-acc].open'));
