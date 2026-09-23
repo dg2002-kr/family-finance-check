@@ -1676,6 +1676,42 @@ def 한줄요약(본문: str, 길이=52) -> str:
     return 첫 if len(첫) <= 길이 else 첫[:길이 - 1].rstrip() + "…"
 
 
+def 구역_AI(조언):
+    """scripts/advise.py 가 받아온 분석. 파일이 없으면 이 구역은 통째로 빠진다."""
+    if not 조언:
+        return ""
+    카드 = []
+    for x in 조언.get("발견", []):
+        카드.append(("🔎", x.get("제목", ""), x.get("설명", ""), ""))
+    for x in 조언.get("살펴볼점", []):
+        카드.append(("❓", x.get("제목", ""), x.get("설명", ""), x.get("규모", "")))
+
+    줄 = []
+    for 그림, 제목, 설명, 규모 in 카드:
+        꼬리 = f'<span class="tag">{esc(규모)}</span>' if 규모 else ""
+        줄.append(f"""<div class="flag">
+  <div class="flag-head">
+    <div class="ico plain">{그림}</div>
+    <div class="fmain">
+      <div class="ft">{esc(제목)}{꼬리}</div>
+      <div class="fsum">{esc(한줄요약(설명))}</div>
+    </div>
+    <div class="chev"></div>
+  </div>
+  <div class="flag-body" hidden><div class="fb">{esc(설명)}</div></div>
+</div>""")
+
+    모델 = esc(조언.get("모델", "Gemini"))
+    return f"""<div class="note"><div class="bar"></div>
+  <p><strong>{esc(조언.get("한줄", ""))}</strong></p>
+</div>
+<div class="flags">{"".join(줄)}</div>
+<div class="check">이 부분은 <b>{모델}</b> 이 집계한 숫자를 읽고 쓴 글입니다.
+사실과 다를 수 있으니 위의 표와 대조해 보세요.
+숫자를 보내 분석을 받는 기능이라, 켜 두면 <b>집계한 합계가 구글로 전송</b>됩니다.
+거래 하나하나나 계좌·증권번호는 보내지 않습니다.</div>"""
+
+
 def 구역_점검(신호들):
     """접었을 때는 제목과 한 줄만, 누르면 근거와 상담 질문까지 펼친다."""
     if not 신호들:
@@ -1960,7 +1996,7 @@ JS = """
 
 
 # ============================================================================
-def html만들기(A, 거래들, 입력파일, 자산, 보험, 가족들, 종목):
+def html만들기(A, 거래들, 입력파일, 자산, 보험, 가족들, 종목, 조언):
     파일수 = len({t["원본파일"].split(":")[0] for t in 거래들})
     중복 = [t for t in 거래들 if t["중복의심"] == "Y"]
     중복금액 = sum(abs(t["금액"]) for t in 중복) // 2
@@ -2019,6 +2055,10 @@ def html만들기(A, 거래들, 입력파일, 자산, 보험, 가족들, 종목)
     {히어로(A, 이번, 지난)}
     {통계카드(A, 자산, 고정비월합, 고정비연합, len(중복)//2 + len(중복구독) + 경고수)}
     {중복안내}
+
+    {f'''<h2>AI가 본 우리집 <span class="tag">{esc(조언.get("모델", "Gemini"))}</span></h2>
+    <p class="lead">집계한 숫자를 읽고 쓴 요약입니다. 눌러서 설명을 볼 수 있어요.</p>
+    {구역_AI(조언)}''' if 조언 else ""}
 
     {f'''<h2>먼저 확인해볼 것</h2>
     <p class="lead">가장 눈에 띄는 것만 추렸습니다. 나머지는 자산·보험 탭에 있어요.</p>
@@ -2099,6 +2139,8 @@ def main():
     ap = argparse.ArgumentParser(description="거래표를 HTML 대시보드로 만듭니다.")
     ap.add_argument("--input", default="out/거래통합.csv")
     ap.add_argument("--output", default="out/우리집_점검.html")
+    ap.add_argument("--ai", default="out/ai_조언.json",
+                    help="scripts/advise.py 가 만든 분석 결과 (없으면 그 구역은 빠짐)")
     ap.add_argument("--data", default="data/sample",
                     help="자산.csv · 보험.csv · 가족.csv 가 들어 있는 폴더 (기본: data/sample)")
     args = ap.parse_args()
@@ -2120,13 +2162,21 @@ def main():
     자산 = 자산집계(표읽기(자료 / "자산.csv"))
     보험 = 보험집계(표읽기(자료 / "보험.csv"))
     종목 = 종목집계(표읽기(자료 / "보유종목.csv"))
+
+    조언 = None
+    조언파일 = Path(args.ai)
+    if 조언파일.exists():
+        try:
+            조언 = json.loads(조언파일.read_text(encoding="utf-8"))
+        except Exception:
+            조언 = None
     가족행 = 표읽기(자료 / "가족.csv")
     가족들 = [(r.get("사람") or "").strip() for r in 가족행 if (r.get("사람") or "").strip()] \
         or A["사람들"]
 
     출력 = Path(args.output)
     출력.parent.mkdir(parents=True, exist_ok=True)
-    출력.write_text(html만들기(A, 거래들, 입력.name, 자산, 보험, 가족들, 종목), encoding="utf-8")
+    출력.write_text(html만들기(A, 거래들, 입력.name, 자산, 보험, 가족들, 종목, 조언), encoding="utf-8")
 
     print(f"기간 {A['달들'][0]} ~ {A['달들'][-1]} / 거래 {len(거래들)}건")
     print(f"가구 총지출 {A['총지출']:,}원 / 구성원 {len(A['사람들'])}명")
