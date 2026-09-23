@@ -83,15 +83,18 @@ def 농담(n, 계열="초록"):
     큰 항목이 진하고 작은 항목이 연하다.
     """
     띠 = {
-        "초록": (172, 88, 58, 56, 25, 64),      # 청록 → 연두 (소비)
-        "파랑": (214, 166, 60, 54, 30, 66),      # 남색 → 청록 (자산)
-        "보라": (272, 200, 52, 50, 34, 66),
+        "초록": (188, 68, 64, 58, 34, 57),       # 청록 → 연두 (소비)
+        "파랑": (224, 152, 62, 56, 33, 58),       # 남색 → 청록 (자산)
+        "보라": (280, 196, 54, 52, 36, 60),
     }
     h0, h1, s0, s1, l0, l1 = 띠.get(계열, 띠["초록"])
     if n <= 1:
-        return [_hsl(h0, s0, l0 + 8)]
+        return [_hsl(h0, s0, (l0 + l1) / 2)]
     걸음 = lambda a, b, i: a + (b - a) * (i / (n - 1))          # noqa: E731
-    return [_hsl(걸음(h0, h1, i), 걸음(s0, s1, i), 걸음(l0, l1, i)) for i in range(n)]
+    # 밝기를 한 칸씩 엇갈리게 해 바로 옆 항목과 더 확실히 갈라 놓는다
+    엇갈림 = lambda i: 4.5 if i % 2 else -4.5                    # noqa: E731
+    return [_hsl(걸음(h0, h1, i), 걸음(s0, s1, i),
+                 min(72, max(26, 걸음(l0, l1, i) + 엇갈림(i)))) for i in range(n)]
 
 CSS = """
 :root {
@@ -278,6 +281,26 @@ body {
 .mini .m.open { background: var(--brand-soft); }
 .mini .m.open .ml { color: var(--brand-deep); font-weight: 800; }
 .minihint { font-size: 11.5px; color: var(--ink3); margin-top: 12px; }
+
+/* 해마다 견주기 */
+.ytitle { font-size: 13px; font-weight: 800; color: var(--ink2); margin-bottom: 12px; }
+.yrow { display: flex; align-items: center; gap: 11px; margin-bottom: 9px; }
+.ylab { width: 92px; flex: none; font-size: 12.5px; font-weight: 700; }
+.ylab span { display: block; font-size: 10.5px; color: var(--ink3); font-weight: 500; }
+.ybar { flex: 1; height: 15px; background: #EDF1F5; border-radius: 4px; overflow: hidden; min-width: 0; }
+.ybar i {
+  display: block; height: 100%; border-radius: 4px;
+  background-image: linear-gradient(90deg, rgba(255,255,255,.25), rgba(255,255,255,0));
+}
+.yval { width: 86px; flex: none; text-align: right; font-size: 13px; font-weight: 800; }
+.ycmp { margin-top: 14px; padding-top: 13px; border-top: 1px solid var(--line); }
+.ycmp-t { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ycmp-b { font-size: 12.5px; color: var(--ink2); margin-top: 6px; word-break: keep-all; }
+@media (max-width: 720px) {
+  .ylab { width: 68px; font-size: 11.5px; }
+  .yval { width: 72px; font-size: 12px; }
+  .yrow { gap: 8px; }
+}
 .hero .detail-host { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 8px; }
 .mini .bw { height: 52px; display: flex; align-items: flex-end; }
 .mini .mb { width: 100%; background: #E3E9EF; border-radius: 5px 5px 2px 2px; }
@@ -531,10 +554,20 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
   font-weight: 800; font-size: 13.5px; white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
-.grp-bar { height: 5px; border-radius: 999px; background: #E6EAEF; margin-top: 7px; overflow: hidden; }
+.grp-bar { height: 7px; border-radius: 999px; background: #E9EDF1; margin-top: 7px; overflow: hidden; }
+.gdot { width: 9px; height: 9px; border-radius: 3px; flex: none; display: inline-block; }
 .grp-bar i { display: block; height: 100%; border-radius: 999px; background: var(--brand); }
 .grp.open > .grp-bar i { background: var(--brand-deep); }
 .grp-items { margin-top: 10px; }
+.mix { display: flex; height: 7px; border-radius: 999px; overflow: hidden; margin-top: 6px; }
+.mix span {
+  display: block; height: 100%;
+  background-image: linear-gradient(180deg, rgba(255,255,255,.2), rgba(0,0,0,.05));
+}
+.mixlab { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 5px; font-size: 11px; color: var(--ink3); }
+.mixc { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.mixc i { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex: none; }
+.mixc b { color: var(--ink2); font-weight: 800; }
 .chev2 {
   width: 6px; height: 6px; flex: none;
   border-right: 2px solid var(--ink3); border-bottom: 2px solid var(--ink3);
@@ -1146,6 +1179,62 @@ def 다음달예상(A, 고정비월합):
   <div class="v tnum">{돈(최근3)}</div>
   <div class="s">최근 석 달 평균 기준{꼬리}<br>
     이 가운데 {돈(고정비월합)}은 이미 정해진 고정비, 나머지 {돈(변동)}이 쓰기 나름입니다.</div>
+</div>"""
+
+
+def 연도비교(A):
+    """해마다 얼마나 썼는지, 그리고 같은 기간끼리 견주면 올해가 어떤지.
+
+    연 총액만 비교하면 진행 중인 해가 무조건 적게 나온다.
+    작년 대비 초과 여부는 '같은 달까지'를 잘라 견줘야 뜻이 있다.
+    """
+    해별, 해월 = defaultdict(int), defaultdict(set)
+    for m, v in A["월별"].items():
+        해별[m[:4]] += v
+        해월[m[:4]].add(m[5:])
+    해들 = sorted(해별)
+    if len(해들) < 2:
+        return ""
+
+    올해 = 해들[-1]
+    작년 = 해들[-2]
+    같은달 = sorted(해월[올해] & 해월[작년])
+    올해같은 = sum(A["월별"][f"{올해}-{d}"] for d in 같은달)
+    작년같은 = sum(A["월별"][f"{작년}-{d}"] for d in 같은달)
+
+    최대 = max(해별.values()) or 1
+    단계 = 농담(len(해들))
+    줄 = []
+    for i, y in enumerate(해들):
+        진행 = " (자료 " + f"{len(해월[y])}개월)" if len(해월[y]) < 12 else ""
+        줄.append(f"""<div class="yrow">
+  <div class="ylab">{esc(y)}년<span>{진행}</span></div>
+  <div class="ybar"><i style="width:{해별[y]/최대*100:.1f}%;background:{단계[i]}"></i></div>
+  <div class="yval tnum">{짧은돈(해별[y])}</div>
+</div>""")
+
+    견줌 = ""
+    if 같은달 and 작년같은:
+        차 = 올해같은 - 작년같은
+        비 = 차 / 작년같은 * 100
+        칩 = 증감칩(차, 작년같은)
+        기간 = f"{int(같은달[0])}~{int(같은달[-1])}월" if len(같은달) > 1 else f"{int(같은달[0])}월"
+        말 = ("작년 같은 기간보다 많이 쓰고 있습니다." if 차 > 0
+              else "작년 같은 기간보다 적게 쓰고 있습니다." if 차 < 0
+              else "작년 같은 기간과 거의 같습니다.")
+        견줌 = f"""<div class="ycmp">
+  <div class="ycmp-t">같은 기간({기간})끼리 견주면 {칩}</div>
+  <div class="ycmp-b">{esc(작년)}년 {돈(작년같은)} → <b>{esc(올해)}년 {돈(올해같은)}</b>
+    · {돈(abs(차))} {"더" if 차 > 0 else "덜"} 썼습니다. {말}</div>
+</div>"""
+    else:
+        견줌 = ('<div class="ycmp"><div class="ycmp-b">두 해에 겹치는 달이 없어 '
+                '같은 기간끼리 견주지 못했습니다. 자료가 더 쌓이면 보여드려요.</div></div>')
+
+    return f"""<div class="card" style="padding:16px 18px">
+  <div class="ytitle">해마다 견주기</div>
+  {''.join(줄)}
+  {견줌}
 </div>"""
 
 
@@ -2025,6 +2114,16 @@ JS = """
 (function () {
   var TX = JSON.parse(document.getElementById('tx-data').textContent);
   var MONTHS = JSON.parse(document.getElementById('month-data').textContent);
+  var WHOCOLOR = JSON.parse(document.getElementById('color-data').textContent);
+
+  // 파이썬의 색 계단과 같은 규칙. 큰 것이 진하다.
+  function hsl(h, s, l) { return 'hsl(' + h.toFixed(1) + ',' + s.toFixed(1) + '%,' + l.toFixed(1) + '%)'; }
+  function 계단(n, i) {
+    if (n <= 1) return hsl(188, 64, 45);
+    var t = i / (n - 1);
+    var l = 34 + (57 - 34) * t + (i % 2 ? 4.5 : -4.5);
+    return hsl(188 + (68 - 188) * t, 64 + (58 - 64) * t, Math.min(72, Math.max(26, l)));
+  }
 
   function won(n) { return Math.abs(n).toLocaleString('ko-KR') + '원'; }
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
@@ -2116,19 +2215,47 @@ JS = """
     var 다음 = depth + 1 < chain.length ? DIMNAME[chain[depth + 1]] + '별' : '거래 하나하나';
 
     return keys.map(function (k) {
-      var g = map[k], id = 'g' + (++SEQ);
+      var g = map[k], id = 'g' + (++SEQ), 색 = 계단(keys.length, keys.indexOf(k));
       STORE[id] = { rows: g.rows, chain: chain, depth: depth + 1 };
       return '<div class="grp" data-id="' + id + '">' +
         '<div class="grp-row" title="누르면 ' + 다음 + '로 나뉩니다">' +
           '<span class="chev2"></span>' +
+          '<span class="gdot" style="background:' + 색 + '"></span>' +
           '<span class="grp-n">' + esc(k) + '</span>' +
           '<span class="grp-c">' + g.n + '건</span>' +
           '<span class="grp-v">' + won(g.sum) + '</span>' +
         '</div>' +
-        '<div class="grp-bar"><i style="width:' + Math.min(100, g.sum / max * 100).toFixed(1) + '%"></i></div>' +
+        '<div class="grp-bar"><i style="width:' + Math.min(100, g.sum / max * 100).toFixed(1) +
+          '%;background:' + 색 + '"></i></div>' +
+        누구몫(g.rows) +
         '<div class="grp-items" hidden></div>' +
       '</div>';
     }).join('');
+  }
+
+  // 이 묶음이 누구를 위해 쓰인 돈인지 — 비율 막대와 이름 칩
+  function 누구몫(rows) {
+    var 몫 = {}, 총 = 0;
+    rows.forEach(function (t) {
+      if (t.k !== '지출') return;
+      var b = t.b || t.p;
+      몫[b] = (몫[b] || 0) + (-t.a);
+      총 += -t.a;
+    });
+    var 이름들 = Object.keys(몫);
+    if (이름들.length < 2 || 총 <= 0) return '';
+    이름들.sort(function (a, b) { return 몫[b] - 몫[a]; });
+
+    var 칸 = 이름들.map(function (n) {
+      return '<span style="width:' + (몫[n] / 총 * 100).toFixed(2) + '%;background:' +
+             (WHOCOLOR[n] || '#C7CDD6') + '" title="' + esc(n) + ' ' + won(몫[n]) + '"></span>';
+    }).join('');
+    var 칩 = 이름들.slice(0, 4).map(function (n) {
+      return '<span class="mixc"><i style="background:' + (WHOCOLOR[n] || '#C7CDD6') + '"></i>' +
+             esc(n.split('_')[0]) + ' <b>' + (몫[n] / 총 * 100).toFixed(0) + '%</b></span>';
+    }).join('');
+    var 더 = 이름들.length > 4 ? '<span class="mixc muted-text">외 ' + (이름들.length - 4) + '명</span>' : '';
+    return '<div class="mix">' + 칸 + '</div><div class="mixlab">' + 칩 + 더 + '</div>';
   }
 
   function 제목(kind, key, key2) {
@@ -2355,6 +2482,11 @@ def html만들기(A, 거래들, 입력파일, 자산, 보험, 가족들, 종목,
     <h2>이번 달 어디에 썼나</h2>
     <p class="lead">{esc(이번 or "-")} 기준. 자세한 것은 소비 탭에서 볼 수 있어요.</p>
     {요약_이번달(A, 이번)}
+
+    <h2>해마다 견주기</h2>
+    <p class="lead">연 총액만 보면 진행 중인 해가 무조건 적게 나옵니다.
+    <b>같은 달까지 잘라서</b> 견줘야 작년보다 많이 쓰고 있는지 알 수 있어요.</p>
+    {연도비교(A)}
   </section>
 
   <section class="panel" id="p-spend" role="tabpanel" hidden>
@@ -2412,6 +2544,7 @@ def html만들기(A, 거래들, 입력파일, 자산, 보험, 가족들, 종목,
 </div>
 
 <script type="application/json" id="tx-data">{상세데이터(거래들, A["달들"])}</script>
+<script type="application/json" id="color-data">{json.dumps(색맵, ensure_ascii=False)}</script>
 <script type="application/json" id="month-data">{json.dumps({"cur": 이번, "prev": 지난}, ensure_ascii=False)}</script>
 <script>{JS}</script>
 </body>
