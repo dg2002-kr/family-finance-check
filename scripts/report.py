@@ -244,7 +244,13 @@ body {
 
 /* 히어로 안의 작은 월 막대 */
 .mini { display: flex; gap: 8px; margin-top: 22px; }
-.mini .m { flex: 1 1 0; min-width: 0; }
+.mini .m { flex: 1 1 0; min-width: 0; cursor: pointer; border-radius: 6px; padding-top: 3px; }
+.mini .m:hover .mb { background: #C2CBD5; }
+.mini .m.now:hover .mb, .mini .m.open .mb { background: var(--brand); }
+.mini .m.open { background: var(--brand-soft); }
+.mini .m.open .ml { color: var(--brand-deep); font-weight: 800; }
+.minihint { font-size: 11.5px; color: var(--ink3); margin-top: 12px; }
+.hero .detail-host { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 8px; }
 .mini .bw { height: 52px; display: flex; align-items: flex-end; }
 .mini .mb { width: 100%; background: #E3E9EF; border-radius: 5px 5px 2px 2px; }
 .mini .m.now .mb { background: var(--brand); }
@@ -1029,15 +1035,18 @@ def 히어로(A, 이번, 지난):
         v = A["월별"][m]
         높이 = 34 + (v - 최소) / 폭 * 66      # 차이가 작아도 눈에 보이게 아래를 띄운다
         이번달 = " now" if m == 이번 else ""
-        칸.append(f'<div class="m{이번달}"><div class="bw"><div class="mb" '
-                  f'style="height:{높이:.1f}%" title="{esc(m)} {돈(v)}"></div></div>'
+        칸.append(f'<div class="m{이번달}" data-kind="month" data-key="{esc(m)}" '
+                  f'title="{esc(m)} {돈(v)} — 눌러서 보기">'
+                  f'<div class="bw"><div class="mb" style="height:{높이:.1f}%"></div></div>'
                   f'<div class="ml">{int(m[5:])}월</div></div>')
 
-    return f"""<div class="hero">
+    return f"""<div class="hero" data-group>
   <div class="k">가구 총지출 · {esc(A["달들"][0])} ~ {esc(A["달들"][-1])}</div>
   <div class="v tnum">{A["총지출"]:,}<span>원</span></div>
   <div class="cmp">{비교}</div>
   <div class="mini">{''.join(칸)}</div>
+  <div class="detail-host" hidden></div>
+  <div class="minihint">막대를 누르면 그달 내역이 열립니다</div>
 </div>"""
 
 
