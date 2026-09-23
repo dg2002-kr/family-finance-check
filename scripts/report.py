@@ -565,15 +565,22 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
 .grp-bar i { display: block; height: 100%; border-radius: 999px; background: var(--brand); }
 .grp.open > .grp-bar i { background: var(--brand-deep); }
 .grp-items { margin-top: 10px; }
-.mix { display: flex; height: 7px; border-radius: 999px; overflow: hidden; margin-top: 6px; }
+.mixwrap { margin-top: 5px; transition: width .3s cubic-bezier(.4,0,.2,1); }
+.mix { display: flex; height: 7px; border-radius: 999px; overflow: hidden; }
 .mix span {
   display: block; height: 100%;
   background-image: linear-gradient(180deg, rgba(255,255,255,.2), rgba(0,0,0,.05));
 }
 .mixlab { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 5px; font-size: 11px; color: var(--ink3); }
-.mixc { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
-.mixc i { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex: none; }
-.mixc b { color: var(--ink2); font-weight: 800; }
+.mixc {
+  display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
+  border: 1px solid transparent; border-radius: 999px; padding: 2px 8px 2px 5px;
+}
+.mixc i { width: 6px; height: 6px; border-radius: 50%; display: inline-block; flex: none; }
+.mixe { font-size: 12px; line-height: 1;
+        font-family: "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif; }
+.mixc b { color: var(--ink); font-weight: 800; }
+.mixlab { gap: 4px 6px; }
 .chev2 {
   width: 6px; height: 6px; flex: none;
   border-right: 2px solid var(--ink3); border-bottom: 2px solid var(--ink3);
@@ -2233,14 +2240,28 @@ JS = """
         '</div>' +
         '<div class="grp-bar"><i style="width:' + Math.min(100, g.sum / max * 100).toFixed(1) +
           '%;background:' + 색 + '"></i></div>' +
-        누구몫(g.rows) +
+        누구몫(g.rows, Math.min(100, g.sum / max * 100)) +
         '<div class="grp-items" hidden></div>' +
       '</div>';
     }).join('');
   }
 
-  // 이 묶음이 누구를 위해 쓰인 돈인지 — 비율 막대와 이름 칩
-  function 누구몫(rows) {
+  // 가족 그림글자 — 이름 앞머리로 고른다
+  function 얼굴(이름) {
+    var n = String(이름 || '');
+    if (n.indexOf('가족') === 0 || n.indexOf('공통') >= 0) return '👨‍👩‍👧‍👦';
+    if (n.indexOf('아빠') === 0 || n.indexOf('남편') === 0) return '👨';
+    if (n.indexOf('엄마') === 0 || n.indexOf('아내') === 0) return '👩';
+    if (n.indexOf('딸') === 0) return '👧';
+    if (n.indexOf('아들') === 0) return '👦';
+    if (n.indexOf('막내') === 0) return '🧒';
+    if (n.indexOf('할') === 0) return '🧓';
+    return '🙂';
+  }
+
+  // 이 묶음이 누구를 위해 쓰인 돈인지 — 위 막대와 같은 폭으로 그린다.
+  // 100% 폭으로 그리면 금액이 더 큰 것처럼 보인다.
+  function 누구몫(rows, 폭) {
     var 몫 = {}, 총 = 0;
     rows.forEach(function (t) {
       if (t.k !== '지출') return;
@@ -2256,12 +2277,17 @@ JS = """
       return '<span style="width:' + (몫[n] / 총 * 100).toFixed(2) + '%;background:' +
              (WHOCOLOR[n] || '#C7CDD6') + '" title="' + esc(n) + ' ' + won(몫[n]) + '"></span>';
     }).join('');
-    var 칩 = 이름들.slice(0, 4).map(function (n) {
-      return '<span class="mixc"><i style="background:' + (WHOCOLOR[n] || '#C7CDD6') + '"></i>' +
+    var 칩 = 이름들.slice(0, 5).map(function (n, i) {
+      var c = WHOCOLOR[n] || '#C7CDD6';
+      return '<span class="mixc" style="border-color:' + c + '55' + (i === 0 ? ';background:' + c + '1A' : '') + '">' +
+             '<span class="mixe">' + 얼굴(n) + '</span>' +
+             '<i style="background:' + c + '"></i>' +
              esc(n.split('_')[0]) + ' <b>' + (몫[n] / 총 * 100).toFixed(0) + '%</b></span>';
     }).join('');
-    var 더 = 이름들.length > 4 ? '<span class="mixc muted-text">외 ' + (이름들.length - 4) + '명</span>' : '';
-    return '<div class="mix">' + 칸 + '</div><div class="mixlab">' + 칩 + 더 + '</div>';
+    var 더 = 이름들.length > 5 ? '<span class="mixc muted-text">외 ' + (이름들.length - 5) + '명</span>' : '';
+    return '<div class="mixwrap" style="width:' + (폭 || 100).toFixed(1) + '%">' +
+           '<div class="mix">' + 칸 + '</div></div>' +
+           '<div class="mixlab">' + 칩 + 더 + '</div>';
   }
 
   function 제목(kind, key, key2) {
