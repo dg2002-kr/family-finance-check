@@ -218,6 +218,14 @@ body {
 .hpl { font-size: 11.5px; font-weight: 700; margin-top: 1px; }
 .hnote { font-size: 11px; color: var(--ink3); margin-top: 9px; line-height: 1.5; }
 
+/* 회사 살림 — 공시 재무 */
+.finbox { margin: 4px 0 8px; padding: 9px 0 0; border-top: 1px dotted var(--line); }
+.fins { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 6px; }
+.fin { background: #F6F8FA; border-radius: var(--r-sm); padding: 7px 9px; }
+.fin .fk { font-size: 10px; color: var(--ink3); font-weight: 700; white-space: nowrap; }
+.fin .fv { font-size: 12.5px; font-weight: 800; margin-top: 1px; letter-spacing: -0.02em;
+           font-variant-numeric: tabular-nums; }
+
 /* 오늘의 소식 — 키워드 단추, 누르면 제목과 원문 링크 */
 .news { margin: 2px 0 10px; padding: 9px 0 0; border-top: 1px dotted var(--line); }
 .nlabel { font-size: 10.5px; color: var(--ink3); font-weight: 700; margin-bottom: 6px; }
@@ -1753,6 +1761,54 @@ def 종목점검(종목들, 평가합, 손익합):
     return 질문
 
 
+def 큰돈(n):
+    """302000000000000 → 302.0조"""
+    n = abs(n or 0)
+    if n >= 1_0000_0000_0000:
+        return f"{n/1_0000_0000_0000:.1f}조"
+    if n >= 1_0000_0000:
+        return f"{n/1_0000_0000:,.0f}억"
+    if n >= 1_0000:
+        return f"{n//1_0000:,}만"
+    return f"{n:,}"
+
+
+def 재무칸(종목명, 재무):
+    """공시된 재무와 잔고의 현재가로 낸 값. 좋고 나쁨은 말하지 않는다."""
+    v = (재무 or {}).get("종목", {}).get(종목명)
+    if not v:
+        return ""
+    출처 = v.get("출처", "")
+    칸 = []
+    for 그림, 이름, 값, 꼴 in [
+        ("💵", "매출", v.get("매출액"), "큰돈"),
+        ("📈", "영업이익", v.get("영업이익"), "큰돈"),
+        ("🧾", "영업이익률", v.get("영업이익률"), "퍼센트"),
+        ("💰", "당기순이익", v.get("당기순이익"), "큰돈"),
+        ("🏦", "자본총계", v.get("자본총계"), "큰돈"),
+        ("📊", "ROE", v.get("ROE"), "퍼센트"),
+        ("🪙", "EPS", v.get("EPS"), "원"),
+        ("📕", "BPS", v.get("BPS"), "원"),
+        ("⚖️", "PER", v.get("PER"), "배"),
+        ("📐", "PBR", v.get("PBR"), "배"),
+    ]:
+        if 값 is None:
+            continue
+        글 = (큰돈(값) + "원" if 꼴 == "큰돈" else
+             f"{값}%" if 꼴 == "퍼센트" else
+             f"{값:,}원" if 꼴 == "원" else f"{값}배")
+        칸.append(f'<div class="fin"><div class="fk">{그림} {esc(이름)}</div>'
+                  f'<div class="fv">{esc(글)}</div></div>')
+    if not 칸:
+        return ""
+    꼬리 = (f'{v.get("해", "")}년 사업보고서'
+           + (" · 전자공시(DART)" if 출처 == "DART" else " · 가상 값(예시)"))
+    return (f'<div class="finbox"><div class="nlabel">📑 회사 살림</div>'
+            f'<div class="fins">{"".join(칸)}</div>'
+            f'<div class="hnote">{esc(꼬리)} · PER·PBR 은 잔고에 적힌 현재가로 낸 값입니다. '
+            f'좋고 나쁨을 판단하거나 사고팔기를 권하지 않습니다.</div></div>')
+
+
 def 뉴스칸(종목명, 뉴스):
     """키워드 단추. 누르면 제목·언론사·날짜가 열리고 원문으로 갈 수 있다.
     기사 본문은 담지 않는다."""
@@ -1777,7 +1833,7 @@ def 뉴스칸(종목명, 뉴스):
             f'<div class="nchips">{"".join(단추)}</div>{"".join(속)}</div>')
 
 
-def 종목판(종목들, 적힌금액, 기관="", 사람="", 뉴스=None):
+def 종목판(종목들, 적힌금액, 기관="", 사람="", 뉴스=None, 재무=None):
     """한 항목 안의 종목별 상세."""
     평가합 = sum(s["평가"] for s in 종목들)
     원금합 = sum(s["원금"] for s in 종목들)
@@ -1812,7 +1868,7 @@ def 종목판(종목들, 적힌금액, 기관="", 사람="", 뉴스=None):
     <div class="hpl tnum" style="color:{c}">{k} {abs(s["손익"]):,.0f}원 ({s["수익률"]:+.1f}%)</div>
   </div>
 </div>
-{뉴스칸(s["종목명"], 뉴스)}""")
+{재무칸(s["종목명"], 재무)}{뉴스칸(s["종목명"], 뉴스)}""")
 
     어긋남 = ""
     if 적힌금액 and abs(적힌금액 - 평가합) > max(1000, 적힌금액 * 0.001):
@@ -1912,7 +1968,7 @@ def 자산상세판(x, 분류금액, 총자산):
             f'{f"<div class=hnote>{남은비고}</div>" if 남은비고 else ""}</div>')
 
 
-def 구역_자산(자산, 종목=None, 뉴스=None):
+def 구역_자산(자산, 종목=None, 뉴스=None, 재무=None):
     """유형별로 묶고 소계를 보여준다. 줄을 누르면 그 안의 항목이 펼쳐진다.
     (자산 관리 앱들이 공통으로 쓰는 방식 — 현금·투자·부동산·대출로 묶고 그룹마다 소계)"""
     if not 자산["항목"]:
@@ -1933,7 +1989,7 @@ def 구역_자산(자산, 종목=None, 뉴스=None):
         for i, x in enumerate(속한):
             종목들 = (종목 or {}).get((x["사람"], x["기관"], x["세부항목"]))
             안내 = f'<span class="tag">종목 {len(종목들)}개</span>' if 종목들 else ""
-            속 = (종목판(종목들, x["금액"], x["기관"], x["사람"], 뉴스) if 종목들
+            속 = (종목판(종목들, x["금액"], x["기관"], x["사람"], 뉴스, 재무) if 종목들
                  else 자산상세판(x, 금, 총))
             조각.append(
                 f'<div class="row aitem" data-acc>'
@@ -2589,7 +2645,7 @@ JS = """
 
 
 # ============================================================================
-def html만들기(A, 거래들, 입력파일, 자산, 보험, 가족들, 종목, 조언, 뉴스):
+def html만들기(A, 거래들, 입력파일, 자산, 보험, 가족들, 종목, 조언, 뉴스, 재무):
     파일수 = len({t["원본파일"].split(":")[0] for t in 거래들})
     중복 = [t for t in 거래들 if t["중복의심"] == "Y"]
     중복금액 = sum(abs(t["금액"]) for t in 중복) // 2
@@ -2711,7 +2767,7 @@ def html만들기(A, 거래들, 입력파일, 자산, 보험, 가족들, 종목,
 
   {f'''<h2>자산 현황</h2>
   <p class="lead">총 {돈(자산["총자산"])} · 직접 적어 넣은 자산 {len(자산["항목"])}건 기준입니다.</p>
-  {구역_자산(자산, 종목, 뉴스)}''' if 자산["항목"] else ""}
+  {구역_자산(자산, 종목, 뉴스, 재무)}''' if 자산["항목"] else ""}
 
   {f'''<h2>보험 점검</h2>
   <p class="lead">가족이 어떤 보장을 얼마나 가지고 있는지, 누가 비어 있는지 한 표에 모았습니다.</p>
@@ -2771,6 +2827,14 @@ def main():
     보험 = 보험집계(표읽기(자료 / "보험.csv"))
     종목 = 종목집계(표읽기(자료 / "보유종목.csv"))
 
+    재무 = None
+    재무파일 = 자료 / "종목재무.json"
+    if 재무파일.exists():
+        try:
+            재무 = json.loads(재무파일.read_text(encoding="utf-8"))
+        except Exception:
+            재무 = None
+
     뉴스 = None
     뉴스파일 = 자료 / "뉴스.json"
     if 뉴스파일.exists():
@@ -2792,7 +2856,7 @@ def main():
 
     출력 = Path(args.output)
     출력.parent.mkdir(parents=True, exist_ok=True)
-    출력.write_text(html만들기(A, 거래들, 입력.name, 자산, 보험, 가족들, 종목, 조언, 뉴스), encoding="utf-8")
+    출력.write_text(html만들기(A, 거래들, 입력.name, 자산, 보험, 가족들, 종목, 조언, 뉴스, 재무), encoding="utf-8")
     앱으로만들기(출력.parent)
 
     print(f"기간 {A['달들'][0]} ~ {A['달들'][-1]} / 거래 {len(거래들)}건")
