@@ -529,6 +529,12 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
 
 /* ---------- 상세 ---------- */
 .detail-host { padding: 4px 6px 12px; }
+.detail-inline {
+  padding: 6px 4px 12px; margin: 2px 0 6px;
+  background: #F8FAFB; border-radius: var(--r-sm);
+  box-shadow: inset 0 1px 0 var(--line), inset 0 -1px 0 var(--line);
+}
+.detail-inline[hidden] { display: none; }
 .detail-host[hidden] { display: none; }
 .dtl-path {
   font-size: 11.5px; color: var(--ink3); padding: 2px 12px 9px;
@@ -2282,7 +2288,22 @@ JS = """
   document.querySelectorAll('[data-kind]').forEach(function (el) {
     el.addEventListener('click', function (e) {
       var 묶음 = el.closest('[data-group]');
-      var host = 묶음.querySelector('.detail-host');
+      if (!묶음) return;
+
+      // 목록의 한 줄을 누르면 그 줄 바로 밑에 연다.
+      // 카드 맨 아래에 열면 어느 줄을 눌렀는지 알 수 없다.
+      var 줄인가 = el.classList.contains('row');
+      var host;
+      if (줄인가) {
+        host = el.nextElementSibling;
+        if (!host || !host.classList.contains('detail-inline')) {
+          host = document.createElement('div');
+          host.className = 'detail-inline';
+          el.after(host);
+        }
+      } else {
+        host = 묶음.querySelector('.detail-host');
+      }
       if (!host) return;
 
       var kind = el.dataset.kind, key = el.dataset.key, key2 = el.dataset.key2;
@@ -2293,8 +2314,13 @@ JS = """
       var 열려있음 = el.classList.contains('open') && host.dataset.sig === 표;
 
       묶음.querySelectorAll('.open').forEach(function (o) { o.classList.remove('open'); });
+      묶음.querySelectorAll('.detail-inline').forEach(function (d) {
+        if (d !== host) d.remove();
+      });
+      var 공용 = 묶음.querySelector('.detail-host');
+      if (공용 && 공용 !== host) { 공용.innerHTML = ''; 공용.hidden = true; 공용.dataset.sig = ''; }
       host.innerHTML = ''; host.hidden = true; host.dataset.sig = '';
-      if (열려있음) return;
+      if (열려있음) { if (줄인가) host.remove(); return; }
 
       var rows = pick(kind, key, key2);
       host.innerHTML = 머리(kind, key, key2, rows) +
