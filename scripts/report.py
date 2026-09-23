@@ -2510,12 +2510,12 @@ def html만들기(A, 거래들, 입력파일, 자산, 보험, 가족들, 종목,
   </div>
 
   <nav class="tabs" role="tablist">
-    <button class="tab-btn" type="button" role="tab" aria-selected="true"  data-tab="p-summary">요약</button>
+    <button class="tab-btn" type="button" role="tab" aria-selected="true"  data-tab="p-wealth">자산·보험{f'<span class="n">{경고수}</span>' if 경고수 else ''}</button>
     <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="p-spend">소비</button>
-    <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="p-wealth">자산·보험{f'<span class="n">{경고수}</span>' if 경고수 else ''}</button>
+    <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="p-summary">소비 요약</button>
   </nav>
 
-  <section class="panel" id="p-summary" role="tabpanel">
+  <section class="panel" id="p-summary" role="tabpanel" hidden>
     {히어로(A, 이번, 지난)}
     {통계카드(A, 자산, 고정비월합, 고정비연합, len(중복)//2 + len(중복구독) + 경고수)}
     {중복안내}
@@ -2569,7 +2569,7 @@ def html만들기(A, 거래들, 입력파일, 자산, 보험, 가족들, 종목,
   {목록_전월대비(이번, 지난, 변화)}
   </section>
 
-  <section class="panel" id="p-wealth" role="tabpanel" hidden>
+  <section class="panel" id="p-wealth" role="tabpanel">
 
   {f'''<h2>자산 현황</h2>
   <p class="lead">총 {돈(자산["총자산"])} · 직접 적어 넣은 자산 {len(자산["항목"])}건 기준입니다.</p>
