@@ -94,10 +94,10 @@ def 골라내기(이름: str, 기사들: list) -> list:
 def 규칙키워드(제목: str) -> str:
     """AI 없이도 쓸 수 있게, 제목에서 핵심으로 보이는 토막을 뽑는다."""
     글 = re.sub(r"[\"'“”‘’\[\]<>…]", " ", 제목)
-    글 = re.split(r"[·,…]|\.\.\.", 글)[0]
+    글 = re.split(r"…|\.\.\.| - ", 글)[0]          # 쉼표로는 자르지 않는다. 너무 짧아진다
     낱말 = [w for w in 글.split() if len(w) >= 2 and w not in 멈춤말]
-    키 = " ".join(낱말[:5]) if 낱말 else 제목[:20]
-    return 키[:24]
+    키 = " ".join(낱말[:7]) if 낱말 else 제목[:24]
+    return 키[:34]
 
 
 def AI키워드(키, 모델, 제목들):
@@ -108,19 +108,22 @@ def AI키워드(키, 모델, 제목들):
                                          "키워드": {"type": "string"}},
         "required": ["번호", "키워드"]}}}, "required": ["키워드"]}
     지시 = ("뉴스 제목을 한 줄로 줄입니다. 그 줄만 읽고도 무슨 일인지 짐작이 가야 합니다.\n"
-           "- 12~22글자. 8글자 아래로 줄이지 않습니다. 짧으면 무슨 소린지 모릅니다.\n"
+           "- 18~30글자. 15글자 아래로 줄이지 않습니다. 짧으면 무슨 소린지 모릅니다.\n"
            "- 누가 · 무엇을 · 어떻게가 드러나게 씁니다.\n"
-           "- 제목에 있는 말만 씁니다. 없는 내용을 지어내지 않습니다.\n"
+           "- 제목에 있는 낱말을 그대로 가져다 씁니다. 비슷한 말로 바꾸지 않습니다.\n"
+           "  ('세계 최초' 를 '업계 최초' 로, 'SOXL' 을 '속슬' 로 바꾸면 안 됩니다.)\n"
            "- 좋고 나쁨을 판단하거나 앞으로 오를지 내릴지 덧붙이지 않습니다.\n"
+           "- 상향·하향·급등·급락·호재·악재 같은 방향을 나타내는 말은 제목에 그 말이 있을 때만 씁니다.\n"
+           "  제목이 '목표주가 63만원' 이라고만 했으면 오른 것인지 내린 것인지 알 수 없으므로 그대로 적습니다.\n"
            "- 예: '추석 앞두고 삼성전자 냉장고 잇단 먹통…긴급 복구 중'\n"
-           "      -> '삼성 냉장고 먹통, 긴급 복구 중' (14글자)\n"
+           "      -> '삼성전자 냉장고 먹통, 추석에도 긴급 복구' (21글자)\n"
            "- 예: 'SK하이닉스 신입사원 4명 해고…인생에서 가장 비싼 술'\n"
-           "      -> 'SK하이닉스 신입사원 4명 해고' (17글자)")
+           "      -> 'SK하이닉스 신입사원 4명 해고, 인생서 가장 비싼 술' (26글자)")
     질문 = "\n".join(f"{i}. {t}" for i, t in enumerate(제목들))
     몸통 = {
         "systemInstruction": {"parts": [{"text": 지시}]},
         "contents": [{"role": "user", "parts": [{"text": 질문}]}],
-        "generationConfig": {"temperature": 0.2, "maxOutputTokens": 2400,
+        "generationConfig": {"temperature": 0.2, "maxOutputTokens": 3000,
                              "thinkingConfig": {"thinkingBudget": 0},
                              "responseMimeType": "application/json",
                              "responseSchema": 스키마},
@@ -130,7 +133,7 @@ def AI키워드(키, 모델, 제목들):
         return None, 오류, {}
     try:
         결과 = json.loads(답["candidates"][0]["content"]["parts"][0]["text"])
-        표 = {x["번호"]: x["키워드"].strip()[:30] for x in 결과.get("키워드", [])}
+        표 = {x["번호"]: x["키워드"].strip()[:40] for x in 결과.get("키워드", [])}
         return 표, None, 답.get("usageMetadata", {})
     except Exception as e:
         return None, f"{type(e).__name__}", 답.get("usageMetadata", {})
@@ -193,9 +196,13 @@ def main():
 
     # 같은 사건을 여러 언론사가 쓰면 키워드가 겹친다. 먼저 나온 것만 남긴다.
     for 이름, 기사 in 모음.items():
+        # 종목 이름은 어느 키워드에나 들어 있으므로 겹침 계산에서 뺀다.
+        # 빼지 않으면 서로 다른 사건까지 같은 것으로 묶여 기사가 두세 건만 남는다.
+        빼기 = {w.lower() for x in [이름] + 종목별칭.get(이름, []) for w in x.split()}
         본것, 남길것 = [], []
         for a in 기사:
-            낱말 = {w for w in a["키워드"].replace(",", " ").split() if len(w) >= 2}
+            낱말 = {w for w in a["키워드"].replace(",", " ").split()
+                  if len(w) >= 2 and w.lower() not in 빼기}
             if any(len(낱말 & 앞) >= 2 for 앞 in 본것):
                 continue                      # 같은 사건을 다른 언론사가 쓴 것
             본것.append(낱말)

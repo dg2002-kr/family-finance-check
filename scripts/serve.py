@@ -20,7 +20,7 @@ from pathlib import Path
 from urllib.parse import quote
 
 뿌리 = Path(__file__).resolve().parent.parent
-대시보드 = "우리집_점검.html"
+대시보드 = "우리집_머니리포트.html"
 
 
 def 내주소():

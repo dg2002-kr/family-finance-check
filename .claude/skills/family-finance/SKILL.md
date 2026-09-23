@@ -44,7 +44,7 @@ PY -X utf8 "PROJ/scripts/report.py" --data  "data/private"
 
 1. `parse.py` 를 돌린다. 콘솔에 읽은 파일 수·거래 건수·기간·사람별 합계가 찍힌다.
 2. `[!]` 로 시작하는 줄이 있으면 **그 파일은 읽히지 않은 것이다.** 5절로 간다.
-3. `report.py` 를 돌린다. `out/우리집_점검.html` 이 만들어진다.
+3. `report.py` 를 돌린다. `out/우리집_머니리포트.html` 이 만들어진다.
 4. 콘솔의 `검산:` 줄에서 구성원 합계와 가구 총지출이 **같은지 확인한다.** 다르면 사용자에게 알리고 멈춘다.
 5. 결과를 3~5문장으로 설명한다. 이때 **숫자는 콘솔 출력에서 그대로 가져온다.**
    - 가구 총지출과 구성원별 비중
@@ -114,7 +114,7 @@ PY -X utf8 "PROJ/scripts/report.py" --data  "data/private"
 | 진짜 데이터 (사람별 폴더) | `data/private/<사람이름>/` |
 | 가상 예시 데이터 | `data/sample/` |
 | 합쳐진 거래표 | `out/거래통합.csv` (엑셀에서 바로 열림) |
-| 대시보드 | `out/우리집_점검.html` |
+| 대시보드 | `out/우리집_머니리포트.html` |
 | 보험 입력 양식 | `templates/보험_입력양식.csv`, 작성법은 `templates/README.md` |
 | 컬럼 별칭·카테고리 규칙 | `scripts/parse.py` 맨 위 `CONFIG` |
 | 고정비 판정 기준 | `scripts/report.py` 맨 위 `금액편차한도`, `결제일편차한도` |

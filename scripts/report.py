@@ -3,7 +3,7 @@
 표준 거래표(out/거래통합.csv)를 읽어 가계부 앱 같은 대시보드 한 장을 만든다.
 
   python -X utf8 scripts/report.py
-  python -X utf8 scripts/report.py --input out/거래통합.csv --output out/우리집_점검.html
+  python -X utf8 scripts/report.py --input out/거래통합.csv --output out/우리집_머니리포트.html
 
 외부 라이브러리·CDN·웹폰트를 쓰지 않는다. 인터넷이 끊겨도 열린다.
 표 대신 카드와 목록으로 구성해 휴대폰에서도 가로로 잘리지 않는다.
@@ -124,8 +124,12 @@ CSS = """
 html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0;
-  padding: 36px 24px 80px;
-  background: var(--bg);
+  padding: 30px 24px 80px;
+  background:
+    radial-gradient(1100px 420px at 12% -8%, #E9F3FF 0%, rgba(233,243,255,0) 62%),
+    radial-gradient(900px 380px at 96% 2%, #E6F7EF 0%, rgba(230,247,239,0) 58%),
+    var(--bg);
+  background-attachment: fixed;
   color: var(--ink);
   font-family: Pretendard, -apple-system, BlinkMacSystemFont, 'Segoe UI',
                'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
@@ -145,15 +149,19 @@ body {
   margin-bottom: 4px;
 }
 .tab-btn {
-  flex: 1; border: none; cursor: pointer;
-  background: #E7EBF0; color: var(--ink2);
-  font-family: inherit; font-size: 13.5px; font-weight: 700; letter-spacing: -0.02em;
-  padding: 11px 8px; border-radius: 11px;
-  transition: background .13s, color .13s;
+  flex: 1; border: 1px solid rgba(15,22,32,.05); cursor: pointer;
+  background: rgba(255,255,255,.72); color: var(--ink2);
+  font-family: inherit; font-size: 13.5px; font-weight: 700; letter-spacing: -0.025em;
+  padding: 11px 8px; border-radius: 13px;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  transition: background .16s, color .16s, box-shadow .16s, transform .16s;
 }
-.tab-btn:hover { background: #DDE3EA; }
+.tab-btn:hover { background: #fff; color: var(--ink); box-shadow: var(--sh); }
 .tab-btn[aria-selected="true"] {
-  background: var(--ink); color: #fff;
+  background: linear-gradient(140deg, #14283C 0%, #0D4536 100%);
+  color: #fff; border-color: transparent;
+  box-shadow: 0 6px 16px rgba(13,50,45,.28);
+  transform: translateY(-1px);
 }
 .tab-btn .n {
   display: inline-block; margin-left: 5px; padding: 1px 6px;
@@ -161,6 +169,15 @@ body {
 }
 .tab-btn[aria-selected="true"] .n { background: var(--up); }
 .panel[hidden] { display: none; }
+.panel { animation: 떠오르기 .26s ease both; }
+@keyframes 떠오르기 {
+  from { opacity: 0; transform: translateY(7px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .panel { animation: none; }
+  .stat:hover, .tab-btn[aria-selected="true"] { transform: none; }
+}
 
 /* ---------- 사람 고르기 (보험) ---------- */
 .subtabs {
@@ -218,7 +235,7 @@ body {
 .hpl { font-size: 11.5px; font-weight: 700; margin-top: 1px; }
 .hnote { font-size: 11.5px; color: var(--ink2); margin-top: 9px; line-height: 1.6; }
 
-/* 회사 살림 — 공시 재무 */
+/* 회사 기본 개요·투자 지표 — 공시 재무 */
 .finbox { margin: 4px 0 8px; padding: 9px 0 0; border-top: 1px dotted var(--line); }
 .fins { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 6px; }
 .fin { background: #F6F8FA; border-radius: var(--r-sm); padding: 7px 9px; }
@@ -229,15 +246,20 @@ body {
 /* 오늘의 소식 — 키워드 단추, 누르면 제목과 원문 링크 */
 .news { margin: 2px 0 10px; padding: 9px 0 0; border-top: 1px dotted var(--line); }
 .nlabel { font-size: 11.5px; color: var(--ink2); font-weight: 800; margin-bottom: 8px; }
-.nchips { display: flex; flex-direction: column; gap: 6px; }
+.nchips { display: flex; flex-direction: column; gap: 4px; }
 .nchip {
   border: 1px solid var(--line); background: var(--surface); color: var(--ink);
-  font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
-  padding: 9px 13px; border-radius: var(--r-sm); text-align: left;
-  line-height: 1.45; word-break: keep-all;
+  font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
+  padding: 7px 11px; border-radius: 8px; text-align: left;
+  line-height: 1.4; word-break: keep-all;
+  display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
   transition: background .13s, border-color .13s, color .13s;
 }
-.nchip .nsrc { display: block; font-size: 10.5px; color: var(--ink3); font-weight: 600; margin-top: 3px; }
+.nchip .nsrc {
+  font-size: 10px; color: var(--ink3); font-weight: 600;
+  flex: 0 0 auto; white-space: nowrap;
+}
+.nsub { font-size: 10.5px; color: var(--ink3); font-weight: 600; margin-left: 7px; }
 .nchip[aria-pressed="true"] .nsrc { color: #C9D2DC; }
 .nchip:hover { border-color: var(--ink3); color: var(--ink); }
 .nchip[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
@@ -284,22 +306,61 @@ body {
 .more-btn:hover { background: #F6F8FA; color: var(--brand-deep); }
 
 /* ---------- 머리말 ---------- */
-.top { margin-bottom: 14px; }
-.top h1 { font-size: 20px; font-weight: 800; margin: 0; letter-spacing: -0.03em; }
-.top .period { color: var(--ink3); font-size: 13px; margin-top: 3px; }
+.top { margin-bottom: 16px; display: flex; align-items: center; gap: 13px; }
+.mark {
+  width: 46px; height: 46px; flex: none; border-radius: 15px;
+  background: linear-gradient(145deg, #00C67E 0%, #00A86B 42%, #00563A 100%);
+  box-shadow: 0 6px 18px rgba(0,134,88,.34), inset 0 1px 0 rgba(255,255,255,.34);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 22px; font-weight: 800; letter-spacing: -0.04em;
+}
+.top h1 {
+  font-size: 22px; font-weight: 800; margin: 0; letter-spacing: -0.045em;
+  background: linear-gradient(97deg, #0F1620 0%, #12463A 58%, #00A86B 130%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.top .period { color: var(--ink3); font-size: 12.5px; margin-top: 2px; }
 
 /* ---------- 히어로 ---------- */
 .hero {
-  background: var(--surface); border-radius: var(--r-lg);
-  padding: 26px 26px 22px; box-shadow: var(--sh); margin-bottom: 14px;
+  position: relative; overflow: hidden;
+  background: linear-gradient(142deg, #0C1626 0%, #123044 46%, #0B4636 100%);
+  border-radius: var(--r-lg);
+  padding: 26px 26px 22px; margin-bottom: 14px; color: #fff;
+  box-shadow: 0 10px 30px rgba(9,26,38,.26), 0 2px 6px rgba(9,26,38,.16);
 }
-.hero .k { font-size: 13.5px; color: var(--ink2); font-weight: 600; }
+.hero::after {
+  content: ""; position: absolute; right: -70px; top: -90px;
+  width: 260px; height: 260px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,198,126,.34) 0%, rgba(0,198,126,0) 68%);
+  pointer-events: none;
+}
+.hero > * { position: relative; z-index: 1; }
+.hero .k { font-size: 13px; color: rgba(255,255,255,.72); font-weight: 600; }
 .hero .v {
-  font-size: 40px; font-weight: 800; letter-spacing: -0.045em;
-  margin: 4px 0 10px; line-height: 1.1; font-variant-numeric: tabular-nums;
+  font-size: 42px; font-weight: 800; letter-spacing: -0.05em; color: #fff;
+  margin: 4px 0 10px; line-height: 1.08; font-variant-numeric: tabular-nums;
 }
-.hero .v span { font-size: 22px; font-weight: 700; margin-left: 2px; color: var(--ink2); }
-.hero .cmp { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; font-size: 13.5px; color: var(--ink2); }
+.hero .v span { font-size: 22px; font-weight: 700; margin-left: 2px; color: rgba(255,255,255,.6); }
+.hero .cmp {
+  display: flex; align-items: center; gap: 9px; flex-wrap: wrap;
+  font-size: 13px; color: rgba(255,255,255,.74);
+}
+.hero .cmp .hl { color: #fff; }
+.hero .pill.up { background: rgba(255,120,122,.2); color: #FF9FA0; }
+.hero .pill.down { background: rgba(0,198,126,.2); color: #57E0A9; }
+.hero .pill.flat, .hero .pill.ghost { background: rgba(255,255,255,.14); color: rgba(255,255,255,.82); }
+.hero .mini .mb { background: rgba(255,255,255,.2); }
+.hero .mini .m.now .mb { background: linear-gradient(180deg, #2BE39B 0%, #00C67E 100%); }
+.hero .mini .m:hover .mb { background: rgba(255,255,255,.34); }
+.hero .mini .m.open { background: rgba(255,255,255,.12); }
+.hero .mini .ml { color: rgba(255,255,255,.55); }
+.hero .mini .m.now .ml, .hero .mini .m.open .ml { color: #fff; font-weight: 800; }
+.hero .minihint { color: rgba(255,255,255,.5); }
+.hero .detail-host {
+  background: var(--surface); color: var(--ink);
+  border-radius: var(--r-md); border-top: none; margin-top: 16px; padding: 8px 10px 12px;
+}
 
 .pill {
   display: inline-flex; align-items: center; gap: 4px;
@@ -351,7 +412,17 @@ body {
 
 /* ---------- 통계 카드 ---------- */
 .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 8px; }
-.stat { background: var(--surface); border-radius: var(--r-md); padding: 18px 20px; box-shadow: var(--sh); }
+.stat {
+  background: var(--surface); border-radius: var(--r-md); padding: 18px 20px;
+  box-shadow: var(--sh); position: relative; overflow: hidden;
+  transition: box-shadow .18s, transform .18s;
+}
+.stat::before {
+  content: ""; position: absolute; left: 0; top: 0; width: 100%; height: 3px;
+  background: linear-gradient(90deg, #00C67E, #2E7CF6);
+  opacity: .5;
+}
+.stat:hover { box-shadow: var(--sh-hi); transform: translateY(-2px); }
 .stat .k { font-size: 12.5px; color: var(--ink2); font-weight: 600; }
 .stat .v {
   font-size: 22px; font-weight: 800; letter-spacing: -0.04em;
@@ -391,7 +462,11 @@ h3.sub-h { font-size: 15px; font-weight: 800; letter-spacing: -0.03em; margin: 3
 h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 3px; }
 .lead { color: var(--ink3); font-size: 13px; margin: 0 0 14px; }
 
-.card { background: var(--surface); border-radius: var(--r-lg); box-shadow: var(--sh); overflow: hidden; }
+.card {
+  background: var(--surface); border-radius: var(--r-lg); box-shadow: var(--sh);
+  overflow: hidden; transition: box-shadow .18s;
+}
+.card:hover { box-shadow: var(--sh-hi); }
 .card.pad { padding: 8px 6px; }
 
 /* ---------- 목록 행 ---------- */
@@ -735,6 +810,7 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
   .fact { padding: 8px 9px; }
   .fv { font-size: 12.5px; }
   /* 좁은 화면에서는 달이 12칸이라 글자가 겹친다. 연도와 금액은 접는다 */
+  .nchip { flex-wrap: wrap; gap: 2px 8px; }
   .bars { gap: 5px; padding: 16px 10px 10px 44px; }
   .yax { top: 18px; height: 132px; }
   .yax i { left: 40px; right: 10px; }
@@ -761,6 +837,11 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
   body { background: #fff; }
   .hint, .detail-host, .check { display: none !important; }
   .card, .hero, .stat, .footer { box-shadow: none; border: 1px solid var(--line); }
+  .hero { background: #fff !important; color: var(--ink) !important; }
+  .hero .k, .hero .cmp, .hero .minihint { color: var(--ink2) !important; }
+  .hero .v, .hero .cmp .hl { color: var(--ink) !important; }
+  .hero::after, .stat::before { display: none; }
+  .top h1 { -webkit-text-fill-color: var(--ink); color: var(--ink); }
 }
 """
 
@@ -807,14 +888,14 @@ def 아이콘만들기(경로: Path, 크기: int):
     경로.write_bytes(_png(크기, 크기, 점))
 
 
-def 앱으로만들기(폴더: Path, 이름="우리집 가계"):
+def 앱으로만들기(폴더: Path, 이름="우리집 머니 리포트"):
     """홈 화면에 추가하면 앱처럼 열리도록 아이콘과 설명 파일을 둔다."""
     폴더.mkdir(parents=True, exist_ok=True)
     for 크기 in (192, 512):
         아이콘만들기(폴더 / f"icon-{크기}.png", 크기)
     (폴더 / "manifest.json").write_text(json.dumps({
         "name": 이름, "short_name": "가계",
-        "start_url": "./우리집_점검.html", "scope": "./",
+        "start_url": "./우리집_머니리포트.html", "scope": "./",
         "display": "standalone", "orientation": "portrait",
         "background_color": "#F4F6F8", "theme_color": "#0F1620",
         "icons": [{"src": f"icon-{s}.png", "sizes": f"{s}x{s}", "type": "image/png",
@@ -1320,7 +1401,7 @@ def 히어로(A, 이번, 지난):
         d = A["월별"][이번] - A["월별"][지난]
         비교 = (f'{증감칩(d, A["월별"][지난])}'
                 f'<span>{esc(지난)} {돈(A["월별"][지난])} → '
-                f'<b style="color:var(--ink)">{esc(이번)} {돈(A["월별"][이번])}</b></span>')
+                f'<b class="hl">{esc(이번)} {돈(A["월별"][이번])}</b></span>')
 
     보일달 = A["달들"][-12:]
     값들 = [A["월별"][m] for m in 보일달]
@@ -1968,32 +2049,43 @@ def 재무칸(종목명, 재무):
     if not v:
         return ""
     출처 = v.get("출처", "")
-    칸 = []
-    for 그림, 이름, 값, 꼴 in [
-        ("💵", "매출", v.get("매출액"), "큰돈"),
-        ("📈", "영업이익", v.get("영업이익"), "큰돈"),
-        ("🧾", "영업이익률", v.get("영업이익률"), "퍼센트"),
-        ("💰", "당기순이익", v.get("당기순이익"), "큰돈"),
-        ("🏦", "자본총계", v.get("자본총계"), "큰돈"),
-        ("📊", "ROE", v.get("ROE"), "퍼센트"),
-        ("🪙", "EPS", v.get("EPS"), "원"),
-        ("📕", "BPS", v.get("BPS"), "원"),
-        ("⚖️", "PER", v.get("PER"), "배"),
-        ("📐", "PBR", v.get("PBR"), "배"),
-    ]:
-        if 값 is None:
+    묶음 = [
+        ("📑 회사 기본 개요", "회사가 한 해 얼마를 팔아 얼마를 남겼나", [
+            ("💵", "매출", v.get("매출액"), "큰돈"),
+            ("📈", "영업이익", v.get("영업이익"), "큰돈"),
+            ("🧾", "영업이익률", v.get("영업이익률"), "퍼센트"),
+            ("💰", "당기순이익", v.get("당기순이익"), "큰돈"),
+            ("🏦", "자본총계", v.get("자본총계"), "큰돈"),
+        ]),
+        ("📊 투자 지표", "주식 한 주 기준으로 바꿔 본 숫자", [
+            ("📊", "ROE", v.get("ROE"), "퍼센트"),
+            ("🪙", "EPS", v.get("EPS"), "원"),
+            ("📕", "BPS", v.get("BPS"), "원"),
+            ("⚖️", "PER", v.get("PER"), "배"),
+            ("📐", "PBR", v.get("PBR"), "배"),
+        ]),
+    ]
+    덩어리, 있음 = [], False
+    for 제목, 설명, 항목들 in 묶음:
+        칸 = []
+        for 그림, 이름, 값, 꼴 in 항목들:
+            if 값 is None:
+                continue
+            글 = (큰돈(값) + "원" if 꼴 == "큰돈" else
+                 f"{값}%" if 꼴 == "퍼센트" else
+                 f"{값:,}원" if 꼴 == "원" else f"{값}배")
+            칸.append(f'<div class="fin"><div class="fk">{그림} {esc(이름)}</div>'
+                      f'<div class="fv">{esc(글)}</div></div>')
+        if not 칸:
             continue
-        글 = (큰돈(값) + "원" if 꼴 == "큰돈" else
-             f"{값}%" if 꼴 == "퍼센트" else
-             f"{값:,}원" if 꼴 == "원" else f"{값}배")
-        칸.append(f'<div class="fin"><div class="fk">{그림} {esc(이름)}</div>'
-                  f'<div class="fv">{esc(글)}</div></div>')
-    if not 칸:
+        있음 = True
+        덩어리.append(f'<div class="nlabel">{제목}<span class="nsub">{esc(설명)}</span></div>'
+                    f'<div class="fins">{"".join(칸)}</div>')
+    if not 있음:
         return ""
     꼬리 = (f'{v.get("해", "")}년 사업보고서'
            + (" · 전자공시(DART)" if 출처 == "DART" else " · 가상 값(예시)"))
-    return (f'<div class="finbox"><div class="nlabel">📑 회사 살림</div>'
-            f'<div class="fins">{"".join(칸)}</div>'
+    return (f'<div class="finbox">{"".join(덩어리)}'
             f'<div class="hnote">{esc(꼬리)} · PER·PBR 은 잔고에 적힌 현재가로 낸 값입니다. '
             f'좋고 나쁨을 판단하거나 사고팔기를 권하지 않습니다.</div></div>')
 
@@ -2894,20 +2986,23 @@ def html만들기(A, 거래들, 입력파일, 자산, 보험, 가족들, 종목,
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="우리집 가계">
+<meta name="apple-mobile-web-app-title" content="우리집 머니 리포트">
 <meta name="format-detection" content="telephone=no">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" type="image/png" href="icon-192.png">
-<title>우리집 가계 점검</title>
+<title>우리집 머니 리포트</title>
 <style>{CSS}</style>
 </head>
 <body>
 <div class="app">
 
   <div class="top">
-    <h1>우리집 가계</h1>
-    <div class="period">파일 {파일수}개 · 거래 {len(거래들)}건 · {esc(생성)} 기준</div>
+    <div class="mark">₩</div>
+    <div>
+      <h1>우리집 머니 리포트</h1>
+      <div class="period">파일 {파일수}개 · 거래 {len(거래들)}건 · {esc(생성)} 기준</div>
+    </div>
   </div>
 
   <nav class="tabs" role="tablist">
@@ -3025,7 +3120,7 @@ def main():
     sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description="거래표를 HTML 대시보드로 만듭니다.")
     ap.add_argument("--input", default="out/거래통합.csv")
-    ap.add_argument("--output", default="out/우리집_점검.html")
+    ap.add_argument("--output", default="out/우리집_머니리포트.html")
     ap.add_argument("--ai", default="out/ai_조언.json",
                     help="scripts/advise.py 가 만든 분석 결과 (없으면 그 구역은 빠짐)")
     ap.add_argument("--data", default="data/sample",
