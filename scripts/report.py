@@ -212,6 +212,18 @@ body {
 .hval { font-size: 13.5px; font-weight: 800; }
 .hpl { font-size: 11.5px; font-weight: 700; margin-top: 1px; }
 .hnote { font-size: 11px; color: var(--ink3); margin-top: 9px; line-height: 1.5; }
+.hhead { display: flex; align-items: center; gap: 11px; padding-bottom: 12px; }
+.hh1 { font-size: 15px; font-weight: 800; letter-spacing: -0.02em; }
+.hh2 { font-size: 11.5px; color: var(--ink3); margin-top: 1px; }
+.hqbox {
+  margin-top: 12px; padding: 12px 14px; border-radius: var(--r-sm);
+  background: #FFF8F0; border: 1px solid #FFE6CC;
+}
+.hqt { font-size: 11px; font-weight: 800; color: #9A5B00; margin-bottom: 7px; }
+.hq { font-size: 12.5px; margin-bottom: 8px; }
+.hq:last-child { margin-bottom: 0; }
+.hq b { display: block; font-weight: 700; color: var(--ink); }
+.hq span { color: var(--ink2); }
 .acc-body .aitem .rtitle { font-size: 13.5px; font-weight: 600; }
 .acc-body .aitem .rval { font-size: 14px; }
 .row[data-acc] { cursor: pointer; }
@@ -350,16 +362,35 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
 
 /* ---------- 도넛 ---------- */
 .donutbox { display: grid; grid-template-columns: 210px 1fr; gap: 6px; align-items: center; }
-.card.focus .donutbox { grid-template-columns: 132px 1fr; align-items: start; }
-.card.focus > .donutbox > .donut {
-  width: 112px; height: 112px; opacity: .38; margin-top: 14px;
+.card.focus .donutbox { grid-template-columns: 172px 1fr; align-items: start; }
+/* 유형을 펼치면 총자산 도넛은 작고 흐리게 물러나고, 펼친 유형이 앞에 선다 */
+.card.focus .donutcol > .donut {
+  width: 96px; height: 96px; opacity: .3; filter: saturate(.55);
+  margin: 6px auto 2px;
 }
-.card.focus > .donutbox > .donut .mid .n { font-size: 13px; }
-.card.focus > .donutbox > .donut .mid .t { font-size: 10px; }
+.card.focus .donutcol > .donut .mid .n { font-size: 11px; }
+.card.focus .donutcol > .donut .mid .t { font-size: 9px; }
 .donut { transition: width .22s ease, height .22s ease, opacity .22s ease; }
-.subdonut { display: flex; justify-content: center; padding: 6px 0 2px; }
-.subdonut .donut { width: 158px; height: 158px; margin: 6px auto; }
-.subdonut .donut .mid .n { font-size: 16px; }
+/* 왼쪽 칸: 총자산 도넛 아래에 지금 펼친 유형의 도넛이 따라 붙는다 */
+.donutcol { position: sticky; top: 66px; }
+.subdonut { padding-top: 2px; }
+.subdonut[hidden] { display: none; }
+.subdonut .donut { width: 150px; height: 150px; margin: 2px auto 8px; }
+.subdonut .donut .mid .n { font-size: 14px; }
+
+/* 자산 항목 상세 — 중요한 것만 단추처럼 */
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 8px; }
+.fact { background: #F6F8FA; border-radius: var(--r-sm); padding: 9px 11px; }
+.fact.up { background: var(--up-soft); }
+.fact.loss { background: #EAF2FE; }
+.fk { font-size: 10.5px; color: var(--ink3); font-weight: 700; white-space: nowrap; }
+.fv {
+  font-size: 13.5px; font-weight: 800; margin-top: 2px;
+  letter-spacing: -0.02em; font-variant-numeric: tabular-nums; word-break: keep-all;
+}
+.fact.up .fv { color: var(--up); }
+.fact.loss .fv { color: var(--loss); }
+.dot2 { width: 9px; height: 9px; border-radius: 50%; flex: none; }
 .donut { position: relative; width: 190px; height: 190px; margin: 14px auto; }
 .donut svg { width: 100%; height: 100%; display: block; transform: rotate(-90deg); }
 .donut .mid {
@@ -568,6 +599,14 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
   .rval { font-size: 15px; }
   .donutbox { grid-template-columns: 1fr; }
   .donut { width: 168px; height: 168px; margin: 18px auto 6px; }
+  .donutcol { position: static; display: flex; gap: 10px; justify-content: center;
+              flex-wrap: wrap; align-items: center; }
+  .donutcol > .donut { margin: 10px auto 2px; }
+  .subdonut .donut { width: 132px; height: 132px; margin: 6px auto; }
+  .subdonut .donut .mid .n { font-size: 12.5px; }
+  .facts { grid-template-columns: repeat(auto-fit, minmax(108px, 1fr)); gap: 6px; }
+  .fact { padding: 8px 9px; }
+  .fv { font-size: 12.5px; }
   /* 좁은 화면에서는 달이 12칸이라 글자가 겹친다. 연도와 금액은 접는다 */
   .bars { gap: 5px; padding: 16px 12px 10px; }
   .bcol { padding-top: 2px; }
@@ -800,9 +839,19 @@ def 자산집계(행들):
             continue
         분류 = (r.get("분류") or "기타").strip()
         분류별[분류] += 금
+
+        def 숫자(칸):
+            try:
+                return float(str(r.get(칸, "")).replace(",", "").strip() or 0)
+            except ValueError:
+                return 0
+
         항목.append({"사람": (r.get("사람") or "").strip(), "분류": 분류,
                     "세부항목": (r.get("세부항목") or "").strip(),
                     "기관": (r.get("기관") or "").strip(), "금액": 금,
+                    "원금": int(숫자("원금")), "이율": 숫자("이율"),
+                    "만기일": (r.get("만기일") or "").strip(),
+                    "기준일": (r.get("기준일") or "").strip(),
                     "비고": (r.get("비고") or "").strip()})
     자산 = sum(v for k, v in 분류별.items() if k != "부채")
     부채 = 분류별.get("부채", 0)
@@ -1080,6 +1129,26 @@ def 히어로(A, 이번, 지난):
 </div>"""
 
 
+def 다음달예상(A, 고정비월합):
+    """최근 석 달 평균과 작년 같은 달을 함께 보여준다. 예측이 아니라 참고용 수치다."""
+    달들 = A["달들"]
+    if len(달들) < 3:
+        return ""
+    끝 = dt.date.fromisoformat(달들[-1] + "-01")
+    다음 = (끝.replace(day=28) + dt.timedelta(days=7)).replace(day=1).strftime("%Y-%m")
+    최근3 = sum(A["월별"][m] for m in 달들[-3:]) // 3
+    작년 = A["월별"].get(f"{int(다음[:4])-1}-{다음[5:]}")
+
+    꼬리 = f" · 작년 같은 달 {짧은돈(작년)}" if 작년 else ""
+    변동 = max(0, 최근3 - 고정비월합)
+    return f"""<div class="stat" style="grid-column:1/-1;margin-top:2px">
+  <div class="k">{esc(다음)} 예상 지출</div>
+  <div class="v tnum">{돈(최근3)}</div>
+  <div class="s">최근 석 달 평균 기준{꼬리}<br>
+    이 가운데 {돈(고정비월합)}은 이미 정해진 고정비, 나머지 {돈(변동)}이 쓰기 나름입니다.</div>
+</div>"""
+
+
 def 통계카드(A, 자산, 고정비월합, 고정비연합, 확인):
     개월 = max(1, len(A["달들"]))
     자산카드 = ""
@@ -1098,6 +1167,7 @@ def 통계카드(A, 자산, 고정비월합, 고정비연합, 확인):
   <div class="stat"><div class="k">확인할 항목</div>
     <div class="v tnum" style="color:{'var(--up)' if 확인 else 'var(--ink)'}">{확인}건</div>
     <div class="s">아래에서 하나씩 짚어드려요</div></div>
+  {다음달예상(A, 고정비월합)}
 </div>"""
 
 
@@ -1443,7 +1513,64 @@ def 종목집계(행들):
     return dict(묶음)
 
 
-def 종목판(종목들, 적힌금액):
+def 보유일수(매수일자: str) -> int:
+    try:
+        return max(1, (dt.date.today() - dt.date.fromisoformat(매수일자[:10])).days)
+    except (ValueError, TypeError):
+        return 0
+
+
+def 연환산(원금, 평가, 일수):
+    """보유 기간을 고려한 연 수익률. 기간이 다른 종목을 나란히 놓고 보기 위한 것."""
+    if 원금 <= 0 or 평가 <= 0 or 일수 <= 0:
+        return None
+    try:
+        return ((평가 / 원금) ** (365 / 일수) - 1) * 100
+    except (OverflowError, ValueError):
+        return None
+
+
+def 기간말(일수: int) -> str:
+    if 일수 <= 0:
+        return ""
+    년, 남 = divmod(일수, 365)
+    달 = 남 // 30
+    if 년 and 달:
+        return f"{년}년 {달}개월"
+    if 년:
+        return f"{년}년"
+    return f"{달}개월" if 달 else f"{일수}일"
+
+
+def 종목점검(종목들, 평가합, 손익합):
+    """사실만 짚고 확인할 질문을 붙인다. 사거나 팔라고 하지 않는다."""
+    질문 = []
+    if not 종목들 or 평가합 <= 0:
+        return 질문
+
+    으뜸 = 종목들[0]
+    비중 = 으뜸["평가"] / 평가합 * 100
+    if 비중 >= 30:
+        질문.append((f'{esc(으뜸["종목명"])} 한 종목이 이 계좌의 {비중:.0f}%입니다',
+                    "한 종목을 어디까지 담을지 미리 정해 두셨는지, 지금이 그 선 안인지 확인해 보세요."))
+
+    오래손실 = [s for s in 종목들 if s["손익"] < 0 and 보유일수(s["매수일자"]) >= 365]
+    if 오래손실:
+        이름 = ", ".join(esc(s["종목명"]) for s in 오래손실[:3])
+        질문.append((f'{이름} — 1년 넘게 손실 구간입니다',
+                    "살 때 어떤 근거로 샀는지, 그 근거가 지금도 유효한지 스스로 점검해 보세요."))
+
+    if 손익합 != 0:
+        기여 = sorted(종목들, key=lambda s: -abs(s["손익"]))[0]
+        몫 = 기여["손익"] / 손익합 * 100 if 손익합 else 0
+        if abs(몫) >= 50:
+            질문.append((f'전체 손익의 {abs(몫):.0f}%가 {esc(기여["종목명"])} 하나에서 나왔습니다',
+                        "계좌 전체 수익률이 한 종목에 좌우되고 있지는 않은지 봐 두세요."))
+
+    return 질문
+
+
+def 종목판(종목들, 적힌금액, 기관="", 사람=""):
     """한 항목 안의 종목별 상세."""
     평가합 = sum(s["평가"] for s in 종목들)
     원금합 = sum(s["원금"] for s in 종목들)
@@ -1457,11 +1584,21 @@ def 종목판(종목들, 적힌금액):
         c = "var(--up)" if s["손익"] > 0 else ("var(--loss)" if s["손익"] < 0 else "var(--ink3)")
         k = "▲" if s["손익"] > 0 else ("▼" if s["손익"] < 0 else "-")
         수량표기 = f'{s["수량"]:,.0f}' if s["수량"] == int(s["수량"]) else f'{s["수량"]:,.2f}'
+        일수 = 보유일수(s["매수일자"])
+        연 = 연환산(s["원금"], s["평가"], 일수)
+        비중 = s["평가"] / 평가합 * 100 if 평가합 else 0
+        꼬리 = []
+        if 일수:
+            꼬리.append(f'{기간말(일수)} 보유')
+        if 연 is not None:
+            꼬리.append(f'연 {연:+.1f}%')
+        꼬리.append(f'계좌의 {비중:.0f}%')
         줄.append(f"""<div class="hrow">
   <div class="hmain">
     <div class="hname">{esc(s["종목명"])}</div>
     <div class="hsub">{수량표기}주 · 매수 {s["매수단가"]:,.0f}원 → 현재 {s["현재가"]:,.0f}원
-      · {esc(s["매수일자"])} 매수</div>
+      · {esc(s["매수일자"])}</div>
+    <div class="hsub">{" · ".join(꼬리)}</div>
   </div>
   <div class="hside">
     <div class="hval tnum">{s["평가"]:,.0f}원</div>
@@ -1474,7 +1611,20 @@ def 종목판(종목들, 적힌금액):
         어긋남 = (f'<div class="hnote">자산에 적어 둔 금액 {돈(적힌금액)}과 종목 합계 '
                  f'{돈(평가합)}이 {돈(abs(적힌금액-평가합))} 다릅니다. 기준일이 다를 수 있어요.</div>')
 
+    점검 = 종목점검(종목들, 평가합, 손익)
+    점검칸 = ""
+    if 점검:
+        항목 = "".join(f'<div class="hq"><b>{제목}</b><span>{설명}</span></div>'
+                     for 제목, 설명 in 점검)
+        점검칸 = f'<div class="hqbox"><div class="hqt">확인해볼 것</div>{항목}</div>'
+
+    머리 = (f'<div class="hhead">{그림칸("금융자산", 자산아이콘, "🏦")}'
+           f'<div><div class="hh1">{esc(기관) or "증권 계좌"}</div>'
+           f'<div class="hh2">{esc(사람.split("_")[0]) + " · " if 사람 else ""}'
+           f'{len(종목들)}종목</div></div></div>')
+
     return f"""<div class="hbox">
+  {머리}
   <div class="hsum">
     <div><div class="k">평가금액</div><div class="v tnum">{평가합:,.0f}원</div></div>
     <div><div class="k">매수원금</div><div class="v tnum">{원금합:,.0f}원</div></div>
@@ -1483,9 +1633,75 @@ def 종목판(종목들, 적힌금액):
   </div>
   {"".join(줄)}
   {어긋남}
+  {점검칸}
   <div class="hnote">현재가는 <b>증권사에서 내려받은 잔고 파일에 적힌 값</b>입니다.
-    이 도구는 인터넷으로 시세를 조회하지 않습니다.</div>
+    이 도구는 시세를 조회하지 않고, 사거나 팔라고 권하지도 않습니다.
+    판단에 쓰실 사실만 모아 둔 것입니다.</div>
 </div>"""
+
+
+def 자산상세판(x, 분류금액, 총자산):
+    """종목 목록이 없는 자산도 눌러서 볼 수 있게, 중요한 것만 단추로 보여준다."""
+    평가, 원금 = x["금액"], x["원금"]
+    칩 = [("💰", "평가금액", 돈(평가), "")]
+
+    if 원금:
+        손익 = 평가 - 원금
+        률 = 손익 / 원금 * 100
+        색 = "up" if 손익 > 0 else ("loss" if 손익 < 0 else "")
+        기호 = "▲" if 손익 > 0 else ("▼" if 손익 < 0 else "-")
+        칩.append(("📥", "원금", 돈(원금), ""))
+        칩.append(("📊", "평가손익", f"{기호} {돈(abs(손익))} ({률:+.1f}%)", 색))
+
+    if x["이율"]:
+        칩.append(("📈", "금리", f"{x['이율']:g}%", ""))
+        if 평가:
+            칩.append(("🧮", "연 이자(단순)", 돈(평가 * x["이율"] / 100), ""))
+
+    if x["만기일"]:
+        try:
+            남 = (dt.date.fromisoformat(x["만기일"][:10]) - dt.date.today()).days
+            칩.append(("📅", "만기", f"{x['만기일']} (D{남:+d})",
+                      "up" if 0 <= 남 <= 90 else ""))
+        except (ValueError, TypeError):
+            칩.append(("📅", "만기", x["만기일"], ""))
+
+    if x["기관"]:
+        칩.append(("🏦", "어디에", x["기관"], ""))
+    칩.append(("👤", "명의", x["사람"].split("_")[0] if x["사람"] else "-", ""))
+    if 분류금액:
+        칩.append(("🥧", f"{x['분류']} 안에서", f"{평가/분류금액*100:.1f}%", ""))
+    if 총자산:
+        칩.append(("🏠", "총자산에서", f"{평가/총자산*100:.1f}%", ""))
+    if x["기준일"]:
+        칩.append(("🕒", "기준일", x["기준일"], ""))
+
+    비고 = x["비고"]
+    표시 = []
+    for 열쇠, 그림, 말 in [("세액공제", "🧾", "세액공제 상품"),
+                       ("예금자보호", "🛟", "예금자보호 대상"),
+                       ("실거주", "🏡", "실거주"),
+                       ("월세", "🔑", "임대 수입 있음"),
+                       ("중도인출", "🔒", "중도인출 제한"),
+                       ("55세", "⏳", "55세 이후 인출"),
+                       ("환율", "💱", "환율 영향"),
+                       ("수시", "⚡", "수시 입출금")]:
+        if 열쇠 in 비고:
+            표시.append(f'<span class="chip">{그림} {말}</span>')
+
+    칸 = "".join(
+        f'<div class="fact{" " + c if c else ""}"><div class="fk">{g} {esc(k)}</div>'
+        f'<div class="fv">{esc(v)}</div></div>' for g, k, v, c in 칩)
+    꼬리 = f'<div class="chips" style="margin-top:10px">{"".join(표시)}</div>' if 표시 else ""
+    남은비고 = esc(비고) if 비고 and not 표시 else ""
+
+    return (f'<div class="hbox">'
+            f'<div class="hhead">{그림칸(x["분류"], 자산아이콘, "🏦")}'
+            f'<div><div class="hh1">{esc(x["세부항목"])}</div>'
+            f'<div class="hh2">{esc(x["분류"])}'
+            f'{" · " + esc(x["기관"]) if x["기관"] else ""}</div></div></div>'
+            f'<div class="facts">{칸}</div>{꼬리}'
+            f'{f"<div class=hnote>{남은비고}</div>" if 남은비고 else ""}</div>')
 
 
 def 구역_자산(자산, 종목=None):
@@ -1498,36 +1714,39 @@ def 구역_자산(자산, 종목=None):
     색맵 = {k: 단계[i] for i, (k, _) in enumerate(분류)}
     총 = 자산["총자산"]
 
-    묶음 = []
-    for 이름, 금 in 분류:
+    묶음, 속도넛들 = [], []
+    for 묶음번호, (이름, 금) in enumerate(분류):
         속한 = sorted((x for x in 자산["항목"] if x["분류"] == 이름), key=lambda x: -x["금액"])
         최대 = 속한[0]["금액"] if 속한 else 1
+        속단계 = 농담(len(속한), "파랑")
+        속색 = {x["세부항목"] + x["기관"]: 속단계[i] for i, x in enumerate(속한)}
+
         조각 = []
-        for x in 속한:
+        for i, x in enumerate(속한):
             종목들 = (종목 or {}).get((x["사람"], x["기관"], x["세부항목"]))
-            누름 = ' data-acc' if 종목들 else ''
-            안내 = '<span class="tag">종목 %d개</span>' % len(종목들) if 종목들 else ''
-            화살 = '<div class="chev"></div>' if 종목들 else ''
+            안내 = f'<span class="tag">종목 {len(종목들)}개</span>' if 종목들 else ""
+            속 = (종목판(종목들, x["금액"], x["기관"], x["사람"]) if 종목들
+                 else 자산상세판(x, 금, 총))
             조각.append(
-                f'<div class="row{"" if 종목들 else " static"} aitem"{누름}>'
+                f'<div class="row aitem" data-acc>'
+                f'<span class="dot2" style="background:{속단계[i]}"></span>'
                 f'<div class="rmain">'
                 f'<div class="rtitle"><span class="nm">{esc(x["세부항목"])}</span>{안내}</div>'
                 f'<div class="rmeta">{esc(x["사람"].split("_")[0])}'
-                f'{" · " + esc(x["기관"]) if x["기관"] else ""}'
-                f'{" · " + esc(x["비고"]) if x["비고"] else ""}</div>'
+                f'{" · " + esc(x["기관"]) if x["기관"] else ""}</div>'
                 f'<div class="track"><i style="width:{x["금액"]/최대*100:.1f}%;'
-                f'background:{색맵[이름]};opacity:.55"></i></div></div>'
+                f'background:{속단계[i]}"></i></div></div>'
                 f'<div class="rside"><div class="rval tnum">{돈(x["금액"])}</div>'
-                f'<div class="rsub">{x["금액"]/금*100:.0f}%</div></div>{화살}</div>')
-            if 종목들:
-                조각.append(f'<div class="acc-body" hidden>{종목판(종목들, x["금액"])}</div>')
+                f'<div class="rsub">{x["금액"]/금*100:.0f}%</div></div>'
+                f'<div class="chev"></div></div>'
+                f'<div class="acc-body" hidden>{속}</div>')
 
-        속단계 = 농담(len(속한), "파랑")
-        속색 = {x["세부항목"] + x["기관"]: 속단계[i] for i, x in enumerate(속한)}
-        속도넛 = 도넛([(x["세부항목"] + x["기관"], x["금액"]) for x in 속한],
-                   속색, 금, esc(이름))
-        항목줄 = (f'<div class="subdonut">{속도넛}</div>' if len(속한) > 1 else "") + "".join(조각)
-        묶음.append(f"""<div class="row" data-acc>
+        속도넛들.append(
+            f'<div class="subdonut" data-for="{묶음번호}" hidden>'
+            f'{도넛([(x["세부항목"] + x["기관"], x["금액"]) for x in 속한], 속색, 금, esc(이름))}'
+            f'</div>')
+        항목줄 = "".join(조각)
+        묶음.append(f"""<div class="row" data-acc data-donut="{묶음번호}">
   <div class="ico" style="background:{색맵[이름]}26">{아이콘(이름, 자산아이콘, "🏦")}</div>
   <div class="rmain">
     <div class="rtitle"><span class="nm">{esc(이름)}</span>
@@ -1547,7 +1766,7 @@ def 구역_자산(자산, 종목=None):
 
     return f"""<div class="card">
   <div class="donutbox">
-    {도넛(분류, 색맵, 총, "총자산")}
+    <div class="donutcol">{도넛(분류, 색맵, 총, "총자산")}{''.join(속도넛들)}</div>
     <div class="pad" style="padding:8px 6px">{''.join(묶음)}</div>
   </div>
 </div>
@@ -1995,7 +2214,12 @@ JS = """
     몸.hidden = !몸.hidden;
     r.classList.toggle('open', !몸.hidden);
     var 카드 = r.closest('.card');
-    if (카드) 카드.classList.toggle('focus', !!카드.querySelector('.row[data-acc].open'));
+    if (!카드) return;
+    카드.classList.toggle('focus', !!카드.querySelector('.row[data-acc].open'));
+    var 열린 = 카드.querySelector('.row[data-acc][data-donut].open');
+    카드.querySelectorAll('.subdonut').forEach(function (d) {
+      d.hidden = !(열린 && d.dataset.for === 열린.dataset.donut);
+    });
   });
 
   // ── 사람 고르기 (보험) ────────────────────────────────────────────────
