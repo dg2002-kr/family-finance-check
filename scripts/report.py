@@ -194,17 +194,28 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
 .bcol { flex: 1 1 0; min-width: 0; text-align: center; }
 .bcol .area { height: 170px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; }
 .bcol .sum {
-  font-size: 12.5px; font-weight: 700; margin-bottom: 7px;
-  white-space: nowrap; font-variant-numeric: tabular-nums;
+  font-size: 11.5px; font-weight: 700; margin-bottom: 7px;
+  white-space: nowrap; font-variant-numeric: tabular-nums; letter-spacing: -0.04em;
 }
+.bcol .mon { white-space: nowrap; }
+.bcol {
+  cursor: pointer; border-radius: var(--r-sm);
+  padding-top: 4px; transition: background .13s;
+}
+.bcol:hover { background: #F6F8FA; }
 .bcol .stk {
   width: 100%; max-width: 78px; margin: 0 auto;
   display: flex; flex-direction: column-reverse;
   border-radius: 8px 8px 4px 4px; overflow: hidden; min-height: 3px;
+  transition: box-shadow .13s;
 }
-.bcol .stk i { display: block; width: 100%; }
+.bcol .stk i { display: block; width: 100%; transition: filter .13s; }
+.bcol .stk i:hover { filter: brightness(1.12); }
+.bcol.open .stk { box-shadow: 0 0 0 2px var(--brand); }
+.bcol.open { background: var(--brand-soft); }
 .bcol .mon { font-size: 12px; color: var(--ink3); margin-top: 10px; }
 .bcol.now .mon { color: var(--ink); font-weight: 700; }
+.bcol.open .mon { color: var(--brand-deep); font-weight: 800; }
 
 .legend { display: flex; flex-wrap: wrap; gap: 8px 18px; padding: 0 20px 18px; font-size: 12.5px; color: var(--ink2); }
 .legend .it { display: flex; align-items: center; gap: 7px; }
@@ -245,11 +256,43 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
 .src { font-size: 11px; color: var(--ink3); margin-top: 7px; }
 
 /* ---------- 상세 ---------- */
-.detail-host { display: none; padding: 4px 8px 14px; }
+.detail-host { padding: 4px 6px 12px; }
+.detail-host[hidden] { display: none; }
+.dtl-path {
+  font-size: 11.5px; color: var(--ink3); padding: 2px 12px 9px;
+  border-bottom: 1px solid var(--line); margin-bottom: 2px;
+}
+/* 단계가 깊어질수록 안쪽으로 들여쓰고 글자를 줄인다 */
+.grp-items > .grp { padding: 9px 0 9px 14px; border-top: 1px dashed var(--line); }
+.grp-items > .grp .grp-n { font-size: 12.5px; font-weight: 600; }
+.grp-items > .grp .grp-v { font-size: 12.5px; }
+.grp-items .grp-items > .grp { padding-left: 22px; }
+.grp-items .grp-items > .grp .grp-n { font-size: 12px; font-weight: 500; }
 .dtl-head {
   font-size: 12.5px; color: var(--ink2); font-weight: 700;
   padding: 10px 12px 8px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
 }
+/* 항목별 묶음 */
+.grp { padding: 11px 12px; border-top: 1px solid var(--line); }
+.grp:first-of-type { border-top: none; }
+.grp-row { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.grp-n { font-weight: 700; font-size: 13.5px; flex: 1; min-width: 0; word-break: keep-all; }
+.grp-c { font-size: 11.5px; color: var(--ink3); white-space: nowrap; }
+.grp-v {
+  font-weight: 800; font-size: 13.5px; white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.grp-bar { height: 5px; border-radius: 999px; background: #E6EAEF; margin-top: 7px; overflow: hidden; }
+.grp-bar i { display: block; height: 100%; border-radius: 999px; background: var(--brand); }
+.grp.open > .grp-bar i { background: var(--brand-deep); }
+.grp-items { margin-top: 10px; }
+.chev2 {
+  width: 6px; height: 6px; flex: none;
+  border-right: 2px solid var(--ink3); border-bottom: 2px solid var(--ink3);
+  transform: rotate(-45deg); transition: transform .13s ease;
+}
+.grp.open > .grp-row .chev2 { transform: rotate(45deg); border-color: var(--brand); }
+
 .dtl-row {
   display: flex; align-items: center; gap: 12px;
   padding: 9px 12px; border-radius: var(--r-sm); background: #F8FAFB; margin-bottom: 6px;
@@ -306,10 +349,16 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
   .rval { font-size: 15px; }
   .donutbox { grid-template-columns: 1fr; }
   .donut { width: 168px; height: 168px; margin: 18px auto 6px; }
-  .bars { gap: 9px; padding: 18px 14px 10px; }
-  .bcol .area { height: 136px; }
-  .bcol .sum { font-size: 11.5px; }
-  .bcol .mon { font-size: 11.5px; }
+  /* 좁은 화면에서는 달이 12칸이라 글자가 겹친다. 연도와 금액은 접는다 */
+  .bars { gap: 5px; padding: 16px 12px 10px; }
+  .bcol { padding-top: 2px; }
+  .bcol .area { height: 132px; }
+  .bcol .sum { display: none; }
+  .bcol.now .sum, .bcol.open .sum { display: block; font-size: 10.5px; }
+  /* 하나를 펼치면 그 달 금액만 보여 라벨이 겹치지 않게 한다 */
+  .bars:has(.bcol.open) .bcol.now:not(.open) .sum { display: none; }
+  .bcol .mon { font-size: 10.5px; margin-top: 7px; }
+  .bcol .mon .yy { display: none; }
   .legend { padding: 0 15px 16px; gap: 6px 14px; }
   .mini { gap: 7px; }
 }
@@ -323,7 +372,7 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
 
 @media print {
   body { background: #fff; }
-  .hint, .detail-host { display: none !important; }
+  .hint, .detail-host, .check { display: none !important; }
   .card, .hero, .stat, .footer { box-shadow: none; border: 1px solid var(--line); }
 }
 """
@@ -342,6 +391,16 @@ def 짧은돈(n) -> str:
     if n >= 10_000:
         return f"약 {n//10_000:,}만원"
     return f"{n:,}원"
+
+
+def 막대금액(n) -> str:
+    """막대 위에 얹는 아주 짧은 표기. 12,730,289 → 1,273만"""
+    n = abs(round(n))
+    if n >= 100_000_000:
+        return f"{n/100_000_000:.1f}억"
+    if n >= 10_000:
+        return f"{n//10_000:,}만"
+    return f"{n:,}"
 
 
 def esc(s) -> str:
@@ -812,7 +871,7 @@ def 목록_수혜자(A, 색맵):
             f'<div class="check bad">검산 불일치: 수혜자 합계 {돈(합)} ≠ 가구 총지출 {돈(총)} ✗</div>')
 
     return f"""<div class="card pad" data-group>{''.join(행)}
-  <div class="detail-host"></div>
+  <div class="detail-host" hidden></div>
 </div>{검산}"""
 
 
@@ -832,7 +891,7 @@ def 목록_결제자(A):
   <div class="chev"></div>
 </div>""")
     return f"""<div class="card pad" data-group>{''.join(행)}
-  <div class="detail-host"></div>
+  <div class="detail-host" hidden></div>
 </div>"""
 
 
@@ -884,7 +943,7 @@ def 구역_카테고리(A):
     <div class="pad" style="padding:8px 6px">{''.join(행[:6])}</div>
   </div>
   <div class="pad" style="padding:0 6px 8px;box-shadow:inset 0 1px 0 var(--line)">{''.join(행[6:])}</div>
-  <div class="detail-host"></div>
+  <div class="detail-host" hidden></div>
 </div>"""
 
 
@@ -908,23 +967,27 @@ def 차트_월별(A, 색맵, 이번):
             v = A["월수혜자"].get((월, 사람), 0)
             if v <= 0:
                 continue
-            조각.append(f'<i style="height:{v/합*100:.2f}%;background:{색맵[사람]}" '
-                       f'title="{esc(월)} {esc(사람)} {돈(v)}"></i>')
+            조각.append(f'<i data-person="{esc(사람)}" '
+                       f'style="height:{v/합*100:.2f}%;background:{색맵[사람]}" '
+                       f'title="{esc(월)} · {esc(사람)} 몫 {돈(v)} — 눌러서 보기"></i>')
         지금 = " now" if 월 == 이번 else ""
         색 = "var(--ink)" if 월 == 이번 else "var(--ink3)"
-        칸들.append(f"""<div class="bcol{지금}">
+        칸들.append(f"""<div class="bcol{지금}" data-kind="month" data-key="{esc(월)}">
   <div class="area">
-    <div class="sum" style="color:{색}">{짧은돈(합)}</div>
+    <div class="sum" style="color:{색}">{막대금액(합)}</div>
     <div class="stk" style="height:{합/눈금*100:.2f}%">{''.join(조각)}</div>
   </div>
-  <div class="mon">{esc(월)}</div>
+  <div class="mon"><span class="yy">{esc(월[:4])}.</span>{int(월[5:])}월</div>
 </div>""")
 
     범례 = "".join(
         f'<span class="it"><span class="swatch" style="background:{색맵[p]}"></span>'
         f'<b>{esc(p)}</b></span>' for p in 사람들)
 
-    return f'<div class="card"><div class="bars">{"".join(칸들)}</div><div class="legend">{범례}</div></div>'
+    return (f'<div class="card" data-group><div class="bars">{"".join(칸들)}</div>'
+            f'<div class="legend">{범례}</div><div class="detail-host" hidden></div></div>'
+            f'<div class="check">막대를 누르면 그달 내역이 열립니다. '
+            f'막대 안의 <b>색 구간</b>을 누르면 그 사람 몫만 볼 수 있어요.</div>')
 
 
 def 목록_고정비(고정비들, 관측개월, 중복구독):
@@ -966,7 +1029,7 @@ def 목록_고정비(고정비들, 관측개월, 중복구독):
 </div>"""
 
     return f"""{경고}<div class="card pad" data-group>{''.join(행)}{합계행}
-  <div class="detail-host"></div>
+  <div class="detail-host" hidden></div>
 </div>
 <div class="check">프로그램은 매달 반복되는 결제를 찾아줄 뿐, 그게 필요한 지출인지는 알 수 없습니다.
 판단 근거와 마지막 결제일을 보고 직접 정해 주세요.</div>"""
@@ -996,7 +1059,7 @@ def 목록_전월대비(이번, 지난, 행들):
   <div class="chev"></div>
 </div>""")
     return f"""<div class="card pad" data-group>{''.join(행)}
-  <div class="detail-host"></div>
+  <div class="detail-host" hidden></div>
 </div>
 <div class="check">늘어난 항목은 빨강 ▲, 줄어든 항목은 초록 ▼ 입니다. 색과 기호를 함께 씁니다.</div>"""
 
@@ -1128,66 +1191,159 @@ JS = """
   var MONTHS = JSON.parse(document.getElementById('month-data').textContent);
 
   function won(n) { return Math.abs(n).toLocaleString('ko-KR') + '원'; }
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+
+  // ── 어디를 눌렀느냐에 따라 어떤 순서로 잘게 쪼개 보여줄지 ──────────────
+  //    c = 카테고리, m = 가맹점, b = 누구 몫, p = 누가 결제, mon = 월
+  var CHAIN = {
+    month:       ['c', 'm'],
+    monthperson: ['c', 'm'],
+    beneficiary: ['c', 'm'],
+    member:      ['c', 'm'],
+    category:    ['b', 'm'],
+    delta:       ['mon', 'm'],
+    fixed:       ['mon']
+  };
+  var DIMNAME = { c: '카테고리', m: '가맹점', b: '누구 몫', p: '결제한 사람', mon: '월' };
+
+  function dimOf(t, dim) {
+    if (dim === 'c') return t.c;
+    if (dim === 'm') return t.m;
+    if (dim === 'b') return t.b;
+    if (dim === 'p') return t.p;
+    if (dim === 'mon') return t.d.slice(0, 7);
+    return '';
+  }
 
   function pick(kind, key, key2) {
     if (kind === 'beneficiary') return TX.filter(function (t) { return t.b === key; });
     if (kind === 'member')   return TX.filter(function (t) { return t.p === key; });
     if (kind === 'category') return TX.filter(function (t) { return t.c === key; });
     if (kind === 'fixed')    return TX.filter(function (t) { return t.m === key && t.p === key2; });
+    if (kind === 'month')    return TX.filter(function (t) { return t.d.slice(0, 7) === key; });
+    if (kind === 'monthperson') return TX.filter(function (t) {
+      return t.d.slice(0, 7) === key && t.b === key2;
+    });
     if (kind === 'delta')    return TX.filter(function (t) {
       return t.c === key && (t.d.slice(0, 7) === MONTHS.cur || t.d.slice(0, 7) === MONTHS.prev);
     });
     return [];
   }
 
-  function render(rows, title) {
+  // 펼칠 때마다 다음 단계를 만들기 위해 행 묶음을 들고 있는다
+  var STORE = {}, SEQ = 0;
+
+  function 거래목록(rows) {
     rows = rows.slice().sort(function (a, b) { return a.d < b.d ? 1 : -1; });
-    var total = 0;
-    rows.forEach(function (t) { if (t.k === '지출') total += -t.a; });
-    var shown = rows.slice(0, 50);
+    var shown = rows.slice(0, 60);
     var body = shown.map(function (t) {
       var dup = t.x ? '<span class="tag warn">중복 의심</span>' : '';
       var isIn = t.k === '수입';
       return '<div class="dtl-row">' +
         '<div class="dtl-main">' +
-          '<div class="dtl-t">' + t.m + dup + '</div>' +
-          '<div class="dtl-s">' + t.d + ' · ' + t.c + ' · ' +
-            (t.b && t.b !== t.p ? t.p + ' 결제 → ' + t.b + ' 몫' : t.p) +
-            ' · ' + t.f + '</div>' +
+          '<div class="dtl-t">' + esc(t.m) + dup + '</div>' +
+          '<div class="dtl-s">' + t.d + ' · ' + esc(t.c) + ' · ' +
+            (t.b && t.b !== t.p ? esc(t.p) + ' 결제 → ' + esc(t.b) + ' 몫' : esc(t.p)) +
+            ' · ' + esc(t.f) + '</div>' +
         '</div>' +
         '<div class="dtl-a' + (isIn ? ' in' : '') + '">' + (isIn ? '+' : '') + won(t.a) + '</div>' +
       '</div>';
     }).join('');
-    var note = rows.length > shown.length
-      ? '<div class="dtl-note">' + rows.length + '건 중 최근 50건만 보여드려요. 전체는 out/거래통합.csv 에 있습니다.</div>'
-      : '';
-    return '<div class="dtl-head"><span>' + title + '</span>' +
-           '<span>' + rows.length + '건 · 지출 ' + total.toLocaleString('ko-KR') + '원</span></div>' +
-           body + note;
+    return body + (rows.length > shown.length
+      ? '<div class="dtl-note">' + rows.length + '건 중 60건만 보여드려요. 전체는 out/거래통합.csv 에 있습니다.</div>'
+      : '');
   }
 
-  function title(d) {
-    if (d.kind === 'fixed') return d.key + ' (' + d.key2 + ') 결제 이력';
-    if (d.kind === 'delta') return d.key + ' · ' + MONTHS.prev + ' ~ ' + MONTHS.cur;
-    return d.key;
+  function 묶음목록(rows, chain, depth) {
+    if (depth >= chain.length) return 거래목록(rows);
+    var dim = chain[depth], map = {}, keys = [];
+    rows.forEach(function (t) {
+      var k = dimOf(t, dim) || '기타';
+      if (!map[k]) { map[k] = { sum: 0, n: 0, rows: [] }; keys.push(k); }
+      map[k].sum += Math.abs(t.a); map[k].n++; map[k].rows.push(t);
+    });
+    var 뒤로 = { '수입': 1, '이체': 1 };          // 소비가 아닌 것은 아래로 내린다
+    keys.sort(function (a, b) {
+      var pa = 뒤로[a] || 0, pb = 뒤로[b] || 0;
+      return pa !== pb ? pa - pb : map[b].sum - map[a].sum;
+    });
+    var 소비 = keys.filter(function (k) { return !뒤로[k]; });
+    var max = 소비.length ? map[소비[0]].sum : (keys.length ? map[keys[0]].sum : 1);
+    var 다음 = depth + 1 < chain.length ? DIMNAME[chain[depth + 1]] + '별' : '거래 하나하나';
+
+    return keys.map(function (k) {
+      var g = map[k], id = 'g' + (++SEQ);
+      STORE[id] = { rows: g.rows, chain: chain, depth: depth + 1 };
+      return '<div class="grp" data-id="' + id + '">' +
+        '<div class="grp-row" title="누르면 ' + 다음 + '로 나뉩니다">' +
+          '<span class="chev2"></span>' +
+          '<span class="grp-n">' + esc(k) + '</span>' +
+          '<span class="grp-c">' + g.n + '건</span>' +
+          '<span class="grp-v">' + won(g.sum) + '</span>' +
+        '</div>' +
+        '<div class="grp-bar"><i style="width:' + Math.min(100, g.sum / max * 100).toFixed(1) + '%"></i></div>' +
+        '<div class="grp-items" hidden></div>' +
+      '</div>';
+    }).join('');
   }
 
-  document.querySelectorAll('.row[data-kind]').forEach(function (el) {
-    el.addEventListener('click', function () {
-      var group = el.closest('[data-group]');
-      var host = group.querySelector('.detail-host');
-      var wasOpen = el.classList.contains('open');
+  function 제목(kind, key, key2) {
+    if (kind === 'fixed') return esc(key) + ' (' + esc(key2) + ') 결제 이력';
+    if (kind === 'delta') return esc(key) + ' · ' + MONTHS.prev + ' ~ ' + MONTHS.cur;
+    if (kind === 'month') return key + ' 한 달';
+    if (kind === 'monthperson') return key + ' · ' + esc(key2) + ' 몫';
+    return esc(key);
+  }
 
-      group.querySelectorAll('.row.open').forEach(function (o) { o.classList.remove('open'); });
-      host.innerHTML = '';
-      host.style.display = 'none';
-      if (wasOpen) return;
+  function 머리(kind, key, key2, rows) {
+    var 지출 = 0;
+    rows.forEach(function (t) { if (t.k === '지출') 지출 += -t.a; });
+    var 길 = (CHAIN[kind] || []).map(function (d) { return DIMNAME[d]; });
+    길.push('개별 거래');
+    return '<div class="dtl-head"><span>' + 제목(kind, key, key2) + '</span>' +
+           '<span>' + rows.length + '건 · 지출 ' + 지출.toLocaleString('ko-KR') + '원</span></div>' +
+           '<div class="dtl-path">누를수록 잘게 나뉩니다 · ' + 길.join(' → ') + '</div>';
+  }
 
-      var d = el.dataset;
-      host.innerHTML = render(pick(d.kind, d.key, d.key2), title(d));
-      host.style.display = 'block';
+  // ── 1단계: 카드·막대를 누르면 열린다 ──────────────────────────────────
+  document.querySelectorAll('[data-kind]').forEach(function (el) {
+    el.addEventListener('click', function (e) {
+      var 묶음 = el.closest('[data-group]');
+      var host = 묶음.querySelector('.detail-host');
+      if (!host) return;
+
+      var kind = el.dataset.kind, key = el.dataset.key, key2 = el.dataset.key2;
+      var 조각 = e.target.closest ? e.target.closest('i[data-person]') : null;
+      if (조각 && kind === 'month') { kind = 'monthperson'; key2 = 조각.dataset.person; }
+
+      var 표 = kind + '|' + key + '|' + (key2 || '');
+      var 열려있음 = el.classList.contains('open') && host.dataset.sig === 표;
+
+      묶음.querySelectorAll('.open').forEach(function (o) { o.classList.remove('open'); });
+      host.innerHTML = ''; host.hidden = true; host.dataset.sig = '';
+      if (열려있음) return;
+
+      var rows = pick(kind, key, key2);
+      host.innerHTML = 머리(kind, key, key2, rows) +
+                       묶음목록(rows, CHAIN[kind] || ['c', 'm'], 0);
+      host.hidden = false;
+      host.dataset.sig = 표;
       el.classList.add('open');
     });
+  });
+
+  // ── 2단계 이후: 묶음을 누르면 그 안이 또 나뉜다 ──────────────────────
+  document.addEventListener('click', function (e) {
+    var 줄 = e.target.closest ? e.target.closest('.grp-row') : null;
+    if (!줄) return;
+    var grp = 줄.parentElement, 안 = grp.querySelector('.grp-items');
+    if (grp.classList.contains('open')) {
+      grp.classList.remove('open'); 안.hidden = true; 안.innerHTML = '';
+      return;
+    }
+    var s = STORE[grp.dataset.id];
+    if (s && !안.innerHTML) 안.innerHTML = 묶음목록(s.rows, s.chain, s.depth);
+    grp.classList.add('open'); 안.hidden = false;
   });
 })();
 """
