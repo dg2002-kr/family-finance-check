@@ -114,10 +114,10 @@ CSS = """
   --loss: #2E7CF6;   /* 국내 증권 앱 관행: 오르면 빨강, 내리면 파랑 */
   --down: #00A86B;
   --down-soft: #E6F7EF;
-  --r-lg: 18px;
-  --r-md: 14px;
-  --r-sm: 10px;
-  --sh: 0 1px 2px rgba(15,22,32,.04), 0 6px 20px rgba(15,22,32,.05);
+  --r-lg: 20px;
+  --r-md: 15px;
+  --r-sm: 11px;
+  --sh: 0 1px 2px rgba(15,22,32,.04), 0 8px 24px rgba(15,22,32,.055);
   --sh-hi: 0 2px 6px rgba(15,22,32,.07), 0 12px 30px rgba(15,22,32,.09);
 }
 * { box-sizing: border-box; }
@@ -144,28 +144,28 @@ body {
 /* ---------- 탭 ---------- */
 .tabs {
   position: sticky; top: 0; z-index: 30;
-  display: flex; gap: 4px; padding: 10px 0 12px;
-  background: linear-gradient(var(--bg) 78%, rgba(244,246,248,0));
-  margin-bottom: 4px;
+  display: flex; gap: 4px; padding: 12px 5px; margin: 0 0 6px;
+  border-radius: 17px;
+  background: rgba(255,255,255,.66);
+  box-shadow: 0 1px 2px rgba(15,22,32,.05), 0 8px 24px rgba(15,22,32,.07);
+  backdrop-filter: saturate(160%) blur(14px);
+  -webkit-backdrop-filter: saturate(160%) blur(14px);
 }
 .tab-btn {
-  flex: 1; border: 1px solid rgba(15,22,32,.05); cursor: pointer;
-  background: rgba(255,255,255,.72); color: var(--ink2);
-  font-family: inherit; font-size: 13.5px; font-weight: 700; letter-spacing: -0.025em;
-  padding: 11px 8px; border-radius: 13px;
-  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-  transition: background .16s, color .16s, box-shadow .16s, transform .16s;
+  flex: 1; border: none; cursor: pointer; background: transparent; color: var(--ink2);
+  font-family: inherit; font-size: 14px; font-weight: 700; letter-spacing: -0.025em;
+  padding: 10px 8px; border-radius: 12px;
+  transition: background .16s, color .16s, box-shadow .16s;
 }
-.tab-btn:hover { background: #fff; color: var(--ink); box-shadow: var(--sh); }
+.tab-btn:hover { background: rgba(15,22,32,.045); color: var(--ink); }
 .tab-btn[aria-selected="true"] {
   background: linear-gradient(140deg, #14283C 0%, #0D4536 100%);
-  color: #fff; border-color: transparent;
-  box-shadow: 0 6px 16px rgba(13,50,45,.28);
-  transform: translateY(-1px);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(13,50,45,.26);
 }
 .tab-btn .n {
   display: inline-block; margin-left: 5px; padding: 1px 6px;
-  border-radius: 999px; background: var(--up); color: #fff; font-size: 11px;
+  border-radius: 999px; background: var(--up); color: #fff; font-size: 12px;
 }
 .tab-btn[aria-selected="true"] .n { background: var(--up); }
 .panel[hidden] { display: none; }
@@ -188,14 +188,14 @@ body {
 .sub-btn {
   flex: none; cursor: pointer; white-space: nowrap;
   border: 1px solid var(--line); background: var(--surface); color: var(--ink2);
-  font-family: inherit; font-size: 13px; font-weight: 700; letter-spacing: -0.02em;
+  font-family: inherit; font-size: 13.5px; font-weight: 700; letter-spacing: -0.02em;
   padding: 8px 14px; border-radius: 999px;
   display: inline-flex; align-items: center; gap: 6px;
   transition: background .13s, color .13s, border-color .13s;
 }
 .sub-btn:hover { border-color: var(--ink3); }
 .sub-btn[aria-selected="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
-.sub-btn .c { font-size: 11px; opacity: .7; font-weight: 700; }
+.sub-btn .c { font-size: 12px; opacity: .7; font-weight: 700; }
 .sub-btn .c.none { color: var(--up); opacity: 1; }
 .sub-btn[aria-selected="true"] .c.none { color: #FF9A9C; }
 .subpanel[hidden] { display: none; }
@@ -206,7 +206,7 @@ body {
   background: var(--surface); border-radius: var(--r-md); box-shadow: var(--sh);
 }
 .pstat div { min-width: 0; }
-.pstat .k { font-size: 11.5px; color: var(--ink3); font-weight: 600; }
+.pstat .k { font-size: 12.5px; color: var(--ink3); font-weight: 600; }
 .pstat .v {
   font-size: 17px; font-weight: 800; letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
@@ -223,17 +223,17 @@ body {
 .acc-body .acc-body { background: #FFF; margin: 0 10px 8px; }
 .hbox { padding: 12px 14px; }
 .hsum { display: flex; gap: 16px; flex-wrap: wrap; padding-bottom: 11px; border-bottom: 1px solid var(--line); margin-bottom: 4px; }
-.hsum .k { font-size: 11px; color: var(--ink3); font-weight: 600; }
-.hsum .v { font-size: 14.5px; font-weight: 800; letter-spacing: -0.03em; }
+.hsum .k { font-size: 12px; color: var(--ink3); font-weight: 600; }
+.hsum .v { font-size: 15px; font-weight: 800; letter-spacing: -0.03em; }
 .hrow { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px dotted var(--line); }
 .hrow:last-of-type { border-bottom: none; }
 .hmain { flex: 1; min-width: 0; }
-.hname { font-size: 13.5px; font-weight: 700; }
-.hsub { font-size: 12px; color: var(--ink2); margin-top: 3px; line-height: 1.5; }
+.hname { font-size: 14px; font-weight: 700; }
+.hsub { font-size: 12.5px; color: var(--ink2); margin-top: 3px; line-height: 1.5; }
 .hside { text-align: right; flex: none; }
-.hval { font-size: 13.5px; font-weight: 800; }
-.hpl { font-size: 11.5px; font-weight: 700; margin-top: 1px; }
-.hnote { font-size: 11.5px; color: var(--ink2); margin-top: 9px; line-height: 1.6; }
+.hval { font-size: 14px; font-weight: 800; }
+.hpl { font-size: 12.5px; font-weight: 700; margin-top: 1px; }
+.hnote { font-size: 12.5px; color: var(--ink2); margin-top: 9px; line-height: 1.6; }
 
 /* 회사 기본 개요·투자 지표 — 공시 재무 */
 /* 회사 숫자 칸과 소식 칸은 성격이 다르다. 바탕색과 왼쪽 띠로 갈라 놓는다. */
@@ -244,8 +244,8 @@ body {
 }
 .fins { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 6px; }
 .fin { background: #F6F8FA; border-radius: var(--r-sm); padding: 7px 9px; }
-.fin .fk { font-size: 10.5px; color: var(--ink2); font-weight: 700; white-space: nowrap; }
-.fin .fv { font-size: 12.5px; font-weight: 800; margin-top: 1px; letter-spacing: -0.02em;
+.fin .fk { font-size: 11.5px; color: var(--ink2); font-weight: 700; white-space: nowrap; }
+.fin .fv { font-size: 13px; font-weight: 800; margin-top: 1px; letter-spacing: -0.02em;
            font-variant-numeric: tabular-nums; }
 
 /* 오늘의 소식 — 키워드 단추, 누르면 제목과 원문 링크 */
@@ -255,7 +255,7 @@ body {
   border-left: 3px solid #D99E3A;
 }
 .nlabel {
-  font-size: 11.5px; color: var(--ink); font-weight: 800; margin-bottom: 8px;
+  font-size: 12.5px; color: var(--ink); font-weight: 800; margin-bottom: 8px;
   display: flex; align-items: baseline; flex-wrap: wrap;
 }
 .finbox .nlabel + .fins { margin-bottom: 11px; }
@@ -269,17 +269,17 @@ body {
 }
 .nchip {
   border: 1px solid var(--line); background: var(--surface); color: var(--ink);
-  font-family: inherit; font-size: 11.5px; font-weight: 700; cursor: pointer;
+  font-family: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer;
   padding: 7px 9px; border-radius: 8px; text-align: left;
   line-height: 1.38; word-break: keep-all;
   display: flex; flex-direction: column; justify-content: space-between; gap: 3px;
   transition: background .13s, border-color .13s, color .13s;
 }
 .nchip .nsrc {
-  font-size: 9.5px; color: var(--ink3); font-weight: 600; white-space: nowrap;
+  font-size: 10.5px; color: var(--ink3); font-weight: 600; white-space: nowrap;
   overflow: hidden; text-overflow: ellipsis;
 }
-.nsub { font-size: 10.5px; color: var(--ink3); font-weight: 600; margin-left: 7px; }
+.nsub { font-size: 11.5px; color: var(--ink3); font-weight: 600; margin-left: 7px; }
 .nchip[aria-pressed="true"] .nsrc { color: #C9D2DC; }
 .nchip:hover { border-color: var(--ink3); color: var(--ink); }
 .nchip[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
@@ -288,38 +288,38 @@ body {
   background: #F3F6F9; border-left: 3px solid var(--ink3);
 }
 .nbox[hidden] { display: none; }
-.ntitle { font-size: 12.5px; font-weight: 700; line-height: 1.5; word-break: keep-all; }
-.nmeta { font-size: 11px; color: var(--ink3); margin-top: 3px; }
+.ntitle { font-size: 13px; font-weight: 700; line-height: 1.5; word-break: keep-all; }
+.nmeta { font-size: 12px; color: var(--ink3); margin-top: 3px; }
 .nlink {
-  display: inline-block; margin-top: 7px; font-size: 11.5px; font-weight: 800;
+  display: inline-block; margin-top: 7px; font-size: 12.5px; font-weight: 800;
   color: var(--brand-deep); text-decoration: none;
 }
 .nlink:hover { text-decoration: underline; }
 .hhead { display: flex; align-items: center; gap: 11px; padding-bottom: 12px; }
 .hh1 { font-size: 15px; font-weight: 800; letter-spacing: -0.02em; }
-.hh2 { font-size: 11.5px; color: var(--ink3); margin-top: 1px; }
+.hh2 { font-size: 12.5px; color: var(--ink3); margin-top: 1px; }
 .hqbox {
   margin-top: 12px; padding: 12px 14px; border-radius: var(--r-sm);
   background: #FFF8F0; border: 1px solid #FFE6CC;
 }
-.hqt { font-size: 11px; font-weight: 800; color: #9A5B00; margin-bottom: 7px; }
-.hq { font-size: 12.5px; margin-bottom: 8px; }
+.hqt { font-size: 12px; font-weight: 800; color: #9A5B00; margin-bottom: 7px; }
+.hq { font-size: 13px; margin-bottom: 8px; }
 .hq:last-child { margin-bottom: 0; }
 .hq b { display: block; font-weight: 700; color: var(--ink); }
 .hq span { color: var(--ink2); }
-.acc-body .aitem .rtitle { font-size: 13.5px; font-weight: 600; }
-.acc-body .aitem .rval { font-size: 14px; }
+.acc-body .aitem .rtitle { font-size: 14px; font-weight: 600; }
+.acc-body .aitem .rval { font-size: 14.5px; }
 .row[data-acc] { cursor: pointer; }
 .row[data-acc]:hover { background: #F6F8FA; }
 .row[data-acc].open { background: var(--brand-soft); }
-.gapbox .t { font-size: 12px; color: var(--ink3); font-weight: 700; margin-bottom: 7px; }
+.gapbox .t { font-size: 12.5px; color: var(--ink3); font-weight: 700; margin-bottom: 7px; }
 
 /* ---------- 더 보기 ---------- */
 .more[hidden] { display: none; }
 .more-btn {
   display: block; width: 100%; border: none; cursor: pointer;
   background: transparent; color: var(--ink2);
-  font-family: inherit; font-size: 12.5px; font-weight: 700;
+  font-family: inherit; font-size: 13px; font-weight: 700;
   padding: 12px 8px; border-top: 1px solid var(--line);
   transition: background .13s;
 }
@@ -339,7 +339,7 @@ body {
   background: linear-gradient(97deg, #0F1620 0%, #12463A 58%, #00A86B 130%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
-.top .period { color: var(--ink3); font-size: 12.5px; margin-top: 2px; }
+.top .period { color: var(--ink3); font-size: 13px; margin-top: 2px; }
 
 /* ---------- 히어로 ---------- */
 .hero {
@@ -356,7 +356,7 @@ body {
   pointer-events: none;
 }
 .hero > * { position: relative; z-index: 1; }
-.hero .k { font-size: 13px; color: rgba(255,255,255,.72); font-weight: 600; }
+.hero .k { font-size: 13.5px; color: rgba(255,255,255,.72); font-weight: 600; }
 .hero .v {
   font-size: 42px; font-weight: 800; letter-spacing: -0.05em; color: #fff;
   margin: 4px 0 10px; line-height: 1.08; font-variant-numeric: tabular-nums;
@@ -364,7 +364,7 @@ body {
 .hero .v span { font-size: 22px; font-weight: 700; margin-left: 2px; color: rgba(255,255,255,.6); }
 .hero .cmp {
   display: flex; align-items: center; gap: 9px; flex-wrap: wrap;
-  font-size: 13px; color: rgba(255,255,255,.74);
+  font-size: 13.5px; color: rgba(255,255,255,.74);
 }
 .hero .cmp .hl { color: #fff; }
 .hero .pill.up { background: rgba(255,120,122,.2); color: #FF9FA0; }
@@ -377,6 +377,18 @@ body {
 .hero .mini .ml { color: rgba(255,255,255,.55); }
 .hero .mini .m.now .ml, .hero .mini .m.open .ml { color: #fff; font-weight: 800; }
 .hero .minihint { color: rgba(255,255,255,.5); }
+.hsplit {
+  display: flex; gap: 3px; height: 10px; margin-top: 20px;
+  border-radius: 999px; overflow: hidden;
+}
+.hsplit span { display: block; border-radius: 999px; }
+.hchips { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 11px; }
+.hchip {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12.5px; color: rgba(255,255,255,.76); white-space: nowrap;
+}
+.hchip i { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.hchip b { color: #fff; font-weight: 800; font-variant-numeric: tabular-nums; }
 .hero .detail-host {
   background: var(--surface); color: var(--ink);
   border-radius: var(--r-md); border-top: none; margin-top: 16px; padding: 8px 10px 12px;
@@ -385,7 +397,7 @@ body {
 .pill {
   display: inline-flex; align-items: center; gap: 4px;
   border-radius: 999px; padding: 4px 11px;
-  font-size: 12.5px; font-weight: 700; letter-spacing: -0.02em; white-space: nowrap;
+  font-size: 13px; font-weight: 700; letter-spacing: -0.02em; white-space: nowrap;
 }
 .pill.up { background: var(--up-soft); color: var(--up); }
 .pill.down { background: var(--down-soft); color: var(--down); }
@@ -399,33 +411,45 @@ body {
 .mini .m.now:hover .mb, .mini .m.open .mb { background: var(--brand); }
 .mini .m.open { background: var(--brand-soft); }
 .mini .m.open .ml { color: var(--brand-deep); font-weight: 800; }
-.minihint { font-size: 11.5px; color: var(--ink3); margin-top: 12px; }
+.minihint { font-size: 12.5px; color: var(--ink3); margin-top: 12px; }
 
 /* 해마다 견주기 */
-.ytitle { font-size: 13px; font-weight: 800; color: var(--ink2); margin-bottom: 12px; }
+.ytitle { font-size: 13.5px; font-weight: 800; color: var(--ink2); margin-bottom: 12px; }
 .yrow { display: flex; align-items: center; gap: 11px; margin-bottom: 9px; }
-.ylab { width: 92px; flex: none; font-size: 12.5px; font-weight: 700; }
-.ylab span { display: block; font-size: 10.5px; color: var(--ink3); font-weight: 500; }
+.ylab { width: 92px; flex: none; font-size: 13px; font-weight: 700; }
+.ylab span { display: block; font-size: 11.5px; color: var(--ink3); font-weight: 500; }
 .ybar { flex: 1; height: 15px; background: #EDF1F5; border-radius: 4px; overflow: hidden; min-width: 0; }
 .ybar i {
   display: block; height: 100%; border-radius: 4px;
   background-image: linear-gradient(90deg, rgba(255,255,255,.25), rgba(255,255,255,0));
 }
-.yval { width: 86px; flex: none; text-align: right; font-size: 13px; font-weight: 800; }
+.yval { width: 86px; flex: none; text-align: right; font-size: 13.5px; font-weight: 800; }
 .ycmp { margin-top: 14px; padding-top: 13px; border-top: 1px solid var(--line); }
-.ycmp-t { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.ycmp-b { font-size: 12.5px; color: var(--ink2); margin-top: 6px; word-break: keep-all; }
+.ycmp-t { font-size: 13.5px; font-weight: 700; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ycmp-b { font-size: 13px; color: var(--ink2); margin-top: 6px; word-break: keep-all; }
 @media (max-width: 720px) {
-  .ylab { width: 68px; font-size: 11.5px; }
-  .yval { width: 72px; font-size: 12px; }
+  .ylab { width: 68px; font-size: 12.5px; }
+  .yval { width: 72px; font-size: 12.5px; }
   .yrow { gap: 8px; }
 }
+.hsplit {
+  display: flex; gap: 3px; height: 10px; margin-top: 20px;
+  border-radius: 999px; overflow: hidden;
+}
+.hsplit span { display: block; border-radius: 999px; }
+.hchips { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 11px; }
+.hchip {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12.5px; color: rgba(255,255,255,.76); white-space: nowrap;
+}
+.hchip i { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.hchip b { color: #fff; font-weight: 800; font-variant-numeric: tabular-nums; }
 .hero .detail-host { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 8px; }
 .mini .bw { height: 52px; display: flex; align-items: flex-end; }
 .mini .mb { width: 100%; background: #E3E9EF; border-radius: 5px 5px 2px 2px; }
 .mini .m.now .mb { background: var(--brand); }
 .mini .ml {
-  font-size: 10.5px; color: var(--ink3); text-align: center;
+  font-size: 11.5px; color: var(--ink3); text-align: center;
   margin-top: 7px; white-space: nowrap;
 }
 .mini .m.now .ml { color: var(--brand-deep); font-weight: 800; }
@@ -438,19 +462,29 @@ body {
   transition: box-shadow .18s, transform .18s;
 }
 .stat::before {
-  content: ""; position: absolute; left: 0; top: 0; width: 100%; height: 3px;
-  background: linear-gradient(90deg, #00C67E, #2E7CF6);
-  opacity: .5;
+  content: ""; position: absolute; right: -40px; top: -52px;
+  width: 132px; height: 132px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, rgba(0,198,126,.16) 0%, rgba(0,198,126,0) 70%);
 }
+.stat > * { position: relative; z-index: 1; }
 .stat:hover { box-shadow: var(--sh-hi); transform: translateY(-2px); }
-.stat .k { font-size: 12.5px; color: var(--ink2); font-weight: 600; }
+.stats > .stat:nth-child(2)::before {
+  background: radial-gradient(circle, rgba(46,124,246,.14) 0%, rgba(46,124,246,0) 70%);
+}
+.stats > .stat:nth-child(3)::before {
+  background: radial-gradient(circle, rgba(188,201,36,.18) 0%, rgba(188,201,36,0) 70%);
+}
+.stats > .stat:nth-child(4)::before {
+  background: radial-gradient(circle, rgba(255,120,122,.15) 0%, rgba(255,120,122,0) 70%);
+}
+.stat .k { font-size: 13px; color: var(--ink2); font-weight: 600; }
 .stat .v {
   font-size: 22px; font-weight: 800; letter-spacing: -0.04em;
   margin: 3px 0 2px; font-variant-numeric: tabular-nums;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .stat .k { min-height: 2.6em; }
-.stat .s { font-size: 12px; color: var(--ink3); }
+.stat .s { font-size: 12.5px; color: var(--ink3); }
 
 /* ---------- 번 돈 − 쓴 돈 = 남은 돈 ---------- */
 .flow {
@@ -471,25 +505,33 @@ body {
 .flow > * { position: relative; z-index: 1; }
 .fcell { text-align: center; min-width: 0; }
 .fcell.key { background: rgba(255,255,255,.1); border-radius: var(--r-sm); padding: 10px 6px; margin: -10px -2px; }
-.fk { font-size: 12px; color: rgba(255,255,255,.72); font-weight: 700; }
+.fk { font-size: 13.5px; color: rgba(255,255,255,.76); font-weight: 700; }
 .fv {
-  font-size: 21px; font-weight: 800; letter-spacing: -0.045em; margin: 5px 0 2px; color: #fff;
+  font-size: 24px; font-weight: 800; letter-spacing: -0.045em; margin: 6px 0 3px; color: #fff;
   font-variant-numeric: tabular-nums; white-space: nowrap;
   overflow: hidden; text-overflow: ellipsis;
 }
-.fs { font-size: 11.5px; color: rgba(255,255,255,.6); }
+.fs { font-size: 13px; color: rgba(255,255,255,.66); }
 .fop { font-size: 18px; font-weight: 800; color: rgba(255,255,255,.45); padding: 0 2px; }
 .tab-lead {
   font-size: 13px; color: var(--ink2); line-height: 1.6;
-  margin: 0 0 18px; padding: 11px 14px;
-  background: var(--surface); border-radius: var(--r-sm); box-shadow: var(--sh);
+  margin: 0 0 16px; padding: 10px 14px;
+  background: rgba(255,255,255,.62); border: 1px solid rgba(15,22,32,.05);
+  border-radius: 12px; box-shadow: none;
 }
 .tab-lead b { color: var(--ink); }
 h3.sub-h { font-size: 15px; font-weight: 800; letter-spacing: -0.03em; margin: 30px 0 3px; }
 
 /* ---------- 섹션 ---------- */
-h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 3px; }
-.lead { color: var(--ink3); font-size: 13px; margin: 0 0 14px; }
+h2 {
+  font-size: 17.5px; font-weight: 800; letter-spacing: -0.04em; margin: 38px 0 4px;
+  display: flex; align-items: center; gap: 9px;
+}
+h2::before {
+  content: ""; width: 3px; height: 17px; border-radius: 999px; flex: none;
+  background: linear-gradient(180deg, #2BE39B 0%, #00A86B 55%, #0D4536 100%);
+}
+.lead { color: var(--ink3); font-size: 13px; margin: 0 0 15px; padding-left: 12px; }
 
 .card {
   background: var(--surface); border-radius: var(--r-lg); box-shadow: var(--sh);
@@ -501,13 +543,16 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
 /* ---------- 목록 행 ---------- */
 .row {
   display: flex; align-items: center; gap: 14px;
-  padding: 14px 20px; cursor: pointer;
-  border-radius: var(--r-md); transition: background .13s;
+  padding: 15px 20px; cursor: pointer;
+  border-radius: var(--r-md); transition: background .14s;
 }
 .row + .row { box-shadow: inset 0 1px 0 var(--line); }
-.row:hover { background: #F8FAFB; }
+.row:hover { background: #F5F8FA; }
+.row:hover .chev { border-color: var(--ink2); transform: rotate(-45deg) translate(1px,1px); }
 .row.open { background: var(--brand-soft); box-shadow: none; }
 .row.open + .row { box-shadow: none; }
+.row.aitem.lv3 { padding-left: 34px; }
+.row.aitem.lv3 .nm { font-weight: 700; }
 .row.static { cursor: default; }
 .row.static:hover { background: transparent; }
 
@@ -533,10 +578,10 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
 /* 이름이 글자 사이에서 끊기지 않게 한다 */
 .nm { white-space: nowrap; }
 .rmeta, .lead, .fb { word-break: keep-all; }
-.rmeta { font-size: 12.5px; color: var(--ink3); margin-top: 1px; }
+.rmeta { font-size: 13px; color: var(--ink3); margin-top: 1px; }
 .rside { text-align: right; flex: none; }
 .rval { font-size: 16px; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
-.rsub { font-size: 12px; color: var(--ink3); margin-top: 1px; font-variant-numeric: tabular-nums; }
+.rsub { font-size: 12.5px; color: var(--ink3); margin-top: 1px; font-variant-numeric: tabular-nums; }
 
 .track { height: 6px; border-radius: 999px; background: #EDF1F5; margin-top: 8px; overflow: hidden; }
 .track i {
@@ -546,14 +591,14 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
 }
 
 .tag {
-  font-size: 11px; font-weight: 700; border-radius: 999px;
+  font-size: 12px; font-weight: 700; border-radius: 999px;
   padding: 2px 8px; background: #F1F3F6; color: var(--ink2); white-space: nowrap;
 }
 .tag.warn { background: var(--up-soft); color: var(--up); }
 
 /* ---------- 도넛 ---------- */
-.donutbox { display: grid; grid-template-columns: 218px 1fr; gap: 6px; align-items: center; }
-.card.focus .donutbox { grid-template-columns: 186px 1fr; align-items: start; }
+.donutbox { display: grid; grid-template-columns: 236px 1fr; gap: 6px; align-items: center; }
+.card.focus .donutbox { grid-template-columns: 204px 1fr; align-items: start; }
 /* 유형을 펼치면 총자산 도넛은 작고 흐리게 물러나고, 펼친 유형이 앞에 선다 */
 .card.focus .donutcol > .dwrap > .donut {
   width: 92px; height: 92px; opacity: .32; filter: saturate(.55);
@@ -561,8 +606,8 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
 }
 .card.focus .donutcol > .dwrap { padding-top: 2px; }
 .card.focus .donutcol > .dwrap > .dleg { display: none; }   /* 펼친 유형의 범례만 남긴다 */
-.card.focus .donutcol > .dwrap > .donut .mid .n { font-size: 11px; }
-.card.focus .donutcol > .dwrap > .donut .mid .t { font-size: 9px; }
+.card.focus .donutcol > .dwrap > .donut .mid .n { font-size: 12px; }
+.card.focus .donutcol > .dwrap > .donut .mid .t { font-size: 9.5px; }
 .card.focus .donutcol > .dwrap > .donut .dseg { display: none; }
 .donut { transition: width .22s ease, height .22s ease, opacity .22s ease; }
 /* 왼쪽 칸: 총자산 도넛 아래에 지금 펼친 유형의 도넛이 따라 붙는다 */
@@ -573,11 +618,11 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
 .subdonut { padding-top: 2px; }
 .subdonut[hidden] { display: none; }
 .subdonut .donut { width: 150px; height: 150px; margin: 2px auto 6px; }
-.subdonut .donut .mid .n { font-size: 14px; }
+.subdonut .donut .mid .n { font-size: 14.5px; }
 
 /* 도넛 조각 위의 비중 */
 .dseg {
-  font-size: 9px; font-weight: 800; fill: #fff; text-anchor: middle;
+  font-size: 10px; font-weight: 800; fill: #fff; text-anchor: middle;
   dominant-baseline: central; letter-spacing: -0.03em;
   paint-order: stroke; stroke: rgba(0,0,0,.28); stroke-width: 2.2px; stroke-linejoin: round;
   pointer-events: none;
@@ -586,14 +631,14 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
 .dleg { padding: 0 10px 10px; display: flex; flex-direction: column; gap: 4px; }
 .dl {
   display: flex; align-items: center; gap: 6px;
-  font-size: 11.5px; line-height: 1.35; white-space: nowrap;
+  font-size: 12.5px; line-height: 1.35; white-space: nowrap;
 }
 .dl .dot2 { width: 8px; height: 8px; }
 .dl .dln {
   flex: 1 1 auto; min-width: 0; font-weight: 700; color: var(--ink);
   overflow: hidden; text-overflow: ellipsis;
 }
-.dl .dlv { flex: none; font-size: 10.5px; color: var(--ink3); font-weight: 600; }
+.dl .dlv { flex: none; font-size: 11.5px; color: var(--ink3); font-weight: 600; }
 .dl .dlp { flex: none; font-weight: 800; color: var(--ink); width: 40px; text-align: right; }
 .dl.more-line .dln, .dl.more-line .dlp { color: var(--ink2); font-weight: 700; }
 
@@ -602,9 +647,9 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
 .fact { background: #F6F8FA; border-radius: var(--r-sm); padding: 9px 11px; }
 .fact.up { background: var(--up-soft); }
 .fact.loss { background: #EAF2FE; }
-.fk { font-size: 10.5px; color: var(--ink3); font-weight: 700; white-space: nowrap; }
+.fk { font-size: 11.5px; color: var(--ink3); font-weight: 700; white-space: nowrap; }
 .fv {
-  font-size: 13.5px; font-weight: 800; margin-top: 2px;
+  font-size: 14px; font-weight: 800; margin-top: 2px;
   letter-spacing: -0.02em; font-variant-numeric: tabular-nums; word-break: keep-all;
 }
 .fact.up .fv { color: var(--up); }
@@ -616,7 +661,7 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
   position: absolute; inset: 0; display: flex; flex-direction: column;
   align-items: center; justify-content: center; text-align: center; pointer-events: none;
 }
-.donut .mid .t { font-size: 11.5px; color: var(--ink3); font-weight: 600; }
+.donut .mid .t { font-size: 12.5px; color: var(--ink3); font-weight: 600; }
 .donut .mid .n {
   font-size: 19px; font-weight: 800; letter-spacing: -0.035em; font-variant-numeric: tabular-nums;
 }
@@ -628,7 +673,7 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
 .yax i.zero { background: #DCE2E8; bottom: 0; }
 .yax b {
   position: absolute; left: 0; width: 54px; text-align: right;
-  font-size: 10.5px; color: var(--ink3); font-weight: 600;
+  font-size: 11.5px; color: var(--ink3); font-weight: 600;
   transform: translateY(50%); font-variant-numeric: tabular-nums; letter-spacing: -0.03em;
 }
 .yax b.zero { bottom: 0; }
@@ -639,7 +684,7 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
 .bcol { flex: 1 1 0; min-width: 0; text-align: center; }
 .bcol .area { height: 170px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; }
 .bcol .sum {
-  font-size: 11.5px; font-weight: 700; margin-bottom: 7px;
+  font-size: 12.5px; font-weight: 700; margin-bottom: 7px;
   white-space: nowrap; font-variant-numeric: tabular-nums; letter-spacing: -0.04em;
 }
 .bcol .mon { white-space: nowrap; }
@@ -659,14 +704,14 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
 .bcol.open .stk { box-shadow: 0 0 0 2px var(--brand); }
 .bcol.open { background: var(--brand-soft); }
 .bcol .mon {
-  font-size: 11px; color: var(--ink2); margin-top: 9px;
+  font-size: 12px; color: var(--ink2); margin-top: 9px;
   font-variant-numeric: tabular-nums; letter-spacing: -0.02em; font-weight: 600;
 }
-.bcol .mon .yy { display: block; font-size: 9px; color: var(--ink3); font-weight: 600; }
+.bcol .mon .yy { display: block; font-size: 10px; color: var(--ink3); font-weight: 600; }
 .bcol.now .mon { color: var(--ink); font-weight: 700; }
 .bcol.open .mon { color: var(--brand-deep); font-weight: 800; }
 
-.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; padding: 0 20px 18px; font-size: 12.5px; color: var(--ink2); }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; padding: 0 20px 18px; font-size: 13px; color: var(--ink2); }
 .legend .it { display: flex; align-items: center; gap: 7px; }
 .legend b { color: var(--ink); font-weight: 700; }
 
@@ -674,25 +719,25 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
 .note {
   background: var(--surface); border-radius: var(--r-md);
   padding: 15px 18px; box-shadow: var(--sh); margin: 14px 0;
-  font-size: 13.5px; color: var(--ink2); display: flex; gap: 12px; align-items: flex-start;
+  font-size: 14px; color: var(--ink2); display: flex; gap: 12px; align-items: flex-start;
 }
 .note .bar { width: 3px; align-self: stretch; border-radius: 999px; background: var(--brand); flex: none; }
 .note.warn .bar { background: var(--up); }
 .note b, .note strong { color: var(--ink); }
 .note p { margin: 0; }
 
-.hint { font-size: 12.5px; color: var(--ink3); margin: 14px 2px 0; }
+.hint { font-size: 13px; color: var(--ink3); margin: 14px 2px 0; }
 
 /* ---------- 보장 칩 ---------- */
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .chip {
-  font-size: 11.5px; font-weight: 600; border-radius: 999px; padding: 3px 10px;
+  font-size: 12.5px; font-weight: 600; border-radius: 999px; padding: 3px 10px;
   background: var(--brand-soft); color: var(--brand-deep); white-space: nowrap;
 }
 .chip.off { background: #F4F6F8; color: var(--ink3); }
 .chip.dup { background: var(--up-soft); color: var(--up); }
 .chip .x {
-  margin-left: 5px; font-size: 10.5px; font-weight: 600; opacity: .8;
+  margin-left: 5px; font-size: 11.5px; font-weight: 600; opacity: .8;
   padding-left: 5px; border-left: 1px solid currentColor;
 }
 .chip .x.must { color: var(--up); opacity: 1; font-weight: 800; }
@@ -701,11 +746,11 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
 .covgrp { padding: 12px 0; border-top: 1px solid var(--line); }
 .covgrp:first-child { border-top: none; }
 .covhead {
-  font-size: 12px; font-weight: 800; color: var(--ink2);
+  font-size: 12.5px; font-weight: 800; color: var(--ink2);
   display: flex; align-items: center; gap: 7px; letter-spacing: -0.02em;
 }
 .covhead .cnt {
-  font-size: 11px; font-weight: 700; color: var(--ink3);
+  font-size: 12px; font-weight: 700; color: var(--ink3);
   background: #F1F3F6; border-radius: 999px; padding: 1px 7px;
 }
 .chip b { font-weight: 800; }
@@ -727,18 +772,18 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
 .flag-head:hover { background: #F8FAFB; }
 .flag.open .flag-head { background: var(--brand-soft); border-radius: var(--r-md) var(--r-md) 0 0; }
 .flag .fmain { flex: 1; min-width: 0; }
-.flag .fsum { font-size: 12.5px; color: var(--ink3); margin-top: 3px; word-break: keep-all; }
+.flag .fsum { font-size: 13px; color: var(--ink3); margin-top: 3px; word-break: keep-all; }
 .flag.open .chev { transform: rotate(45deg); border-color: var(--brand); }
 .flag-body { padding: 4px 18px 17px; }
 .flag-body[hidden] { display: none; }
-.flag .ft { font-weight: 800; font-size: 14.5px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; letter-spacing: -0.02em; }
-.flag .fb { font-size: 13px; color: var(--ink2); }
+.flag .ft { font-weight: 800; font-size: 15px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; letter-spacing: -0.02em; }
+.flag .fb { font-size: 13.5px; color: var(--ink2); }
 .flag .fq {
-  font-size: 12.5px; color: var(--ink); background: #F6F8FA;
+  font-size: 13px; color: var(--ink); background: #F6F8FA;
   border-radius: var(--r-sm); padding: 10px 13px; margin-top: 10px;
 }
-.flag .fq .q { color: var(--ink3); font-weight: 700; font-size: 11px; display: block; margin-bottom: 3px; }
-.src { font-size: 11px; color: var(--ink3); margin-top: 7px; }
+.flag .fq .q { color: var(--ink3); font-weight: 700; font-size: 12px; display: block; margin-bottom: 3px; }
+.src { font-size: 12px; color: var(--ink3); margin-top: 7px; }
 
 /* ---------- 상세 ---------- */
 .detail-host { padding: 4px 6px 12px; }
@@ -750,27 +795,27 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
 .detail-inline[hidden] { display: none; }
 .detail-host[hidden] { display: none; }
 .dtl-path {
-  font-size: 11.5px; color: var(--ink3); padding: 2px 12px 9px;
+  font-size: 12.5px; color: var(--ink3); padding: 2px 12px 9px;
   border-bottom: 1px solid var(--line); margin-bottom: 2px;
 }
 /* 단계가 깊어질수록 안쪽으로 들여쓰고 글자를 줄인다 */
 .grp-items > .grp { padding: 9px 0 9px 14px; border-top: 1px dashed var(--line); }
-.grp-items > .grp .grp-n { font-size: 12.5px; font-weight: 600; }
-.grp-items > .grp .grp-v { font-size: 12.5px; }
+.grp-items > .grp .grp-n { font-size: 13px; font-weight: 600; }
+.grp-items > .grp .grp-v { font-size: 13px; }
 .grp-items .grp-items > .grp { padding-left: 22px; }
-.grp-items .grp-items > .grp .grp-n { font-size: 12px; font-weight: 500; }
+.grp-items .grp-items > .grp .grp-n { font-size: 12.5px; font-weight: 500; }
 .dtl-head {
-  font-size: 12.5px; color: var(--ink2); font-weight: 700;
+  font-size: 13px; color: var(--ink2); font-weight: 700;
   padding: 10px 12px 8px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
 }
 /* 항목별 묶음 */
 .grp { padding: 11px 12px; border-top: 1px solid var(--line); }
 .grp:first-of-type { border-top: none; }
 .grp-row { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-.grp-n { font-weight: 700; font-size: 13.5px; flex: 1; min-width: 0; word-break: keep-all; }
-.grp-c { font-size: 11.5px; color: var(--ink3); white-space: nowrap; }
+.grp-n { font-weight: 700; font-size: 14px; flex: 1; min-width: 0; word-break: keep-all; }
+.grp-c { font-size: 12.5px; color: var(--ink3); white-space: nowrap; }
 .grp-v {
-  font-weight: 800; font-size: 13.5px; white-space: nowrap;
+  font-weight: 800; font-size: 14px; white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 .gdot { width: 9px; height: 9px; border-radius: 3px; flex: none; display: inline-block; }
@@ -781,13 +826,13 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
   display: block; height: 100%;
   background-image: linear-gradient(180deg, rgba(255,255,255,.2), rgba(0,0,0,.05));
 }
-.mixlab { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 5px; font-size: 11px; color: var(--ink3); }
+.mixlab { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 5px; font-size: 12px; color: var(--ink3); }
 .mixc {
   display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
   border: 1px solid transparent; border-radius: 999px; padding: 2px 8px 2px 5px;
 }
 .mixc i { width: 6px; height: 6px; border-radius: 50%; display: inline-block; flex: none; }
-.mixe { font-size: 12px; line-height: 1;
+.mixe { font-size: 12.5px; line-height: 1;
         font-family: "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif; }
 .mixc b { color: var(--ink); font-weight: 800; }
 .mixlab { gap: 4px 6px; }
@@ -803,11 +848,11 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
   padding: 9px 12px; border-radius: var(--r-sm); background: #F8FAFB; margin-bottom: 6px;
 }
 .dtl-main { flex: 1; min-width: 0; }
-.dtl-t { font-size: 13.5px; font-weight: 700; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.dtl-s { font-size: 11.5px; color: var(--ink3); margin-top: 1px; word-break: break-all; }
-.dtl-a { font-size: 14px; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.dtl-t { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.dtl-s { font-size: 12.5px; color: var(--ink3); margin-top: 1px; word-break: break-all; }
+.dtl-a { font-size: 14.5px; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .dtl-a.in { color: var(--brand); }
-.dtl-note { font-size: 11.5px; color: var(--ink3); padding: 6px 12px 0; }
+.dtl-note { font-size: 12.5px; color: var(--ink3); padding: 6px 12px 0; }
 
 .chev {
   width: 7px; height: 7px; flex: none; margin-left: 2px;
@@ -818,7 +863,7 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
 
 /* ---------- 검산·꼬리말 ---------- */
 .check {
-  font-size: 12.5px; color: var(--ink3); margin: 10px 4px 0;
+  font-size: 13px; color: var(--ink3); margin: 10px 4px 0;
   display: flex; align-items: center; gap: 7px;
 }
 .check.ok b { color: var(--brand); }
@@ -826,7 +871,7 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
 
 .footer {
   margin-top: 46px; background: var(--surface); border-radius: var(--r-md);
-  padding: 18px 20px; box-shadow: var(--sh); font-size: 12.5px; color: var(--ink3);
+  padding: 18px 20px; box-shadow: var(--sh); font-size: 13px; color: var(--ink3);
 }
 .footer .warn { color: var(--up); font-weight: 700; }
 
@@ -848,17 +893,17 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
   .stats { grid-template-columns: 1fr 1fr; gap: 10px; }
   .stat { padding: 14px 15px; }
   .stat .v { font-size: 18px; }
-  .stat .k { min-height: 0; font-size: 12px; }
-  .stat .s { font-size: 11.5px; }
+  .stat .k { min-height: 0; font-size: 12.5px; }
+  .stat .s { font-size: 12.5px; }
   h2 { font-size: 16px; margin-top: 30px; }
   .card { border-radius: var(--r-md); }
   .row { padding: 11px 13px; gap: 10px; }
-  .ava { width: 34px; height: 34px; border-radius: 10px; font-size: 14px; }
+  .ava { width: 34px; height: 34px; border-radius: 10px; font-size: 14.5px; }
   .chev { display: none; }            /* 좁은 화면에서는 이름과 금액에 자리를 준다 */
   .row[data-acc] .chev { display: block; }   /* 단, 펼쳐지는 줄은 표시를 남긴다 */
-  .rmeta { font-size: 11.5px; }
-  .rside .rsub { font-size: 11px; }
-  .rtitle { font-size: 14.5px; }
+  .rmeta { font-size: 12.5px; }
+  .rside .rsub { font-size: 12px; }
+  .rtitle { font-size: 15px; }
   .rval { font-size: 15px; }
   .donutbox { grid-template-columns: 1fr; }
   .donut { width: 168px; height: 168px; margin: 18px auto 6px; }
@@ -866,32 +911,32 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
               flex-wrap: wrap; align-items: center; }
   .donutcol > .donut { margin: 10px auto 2px; }
   .subdonut .donut { width: 132px; height: 132px; margin: 6px auto; }
-  .subdonut .donut .mid .n { font-size: 12.5px; }
+  .subdonut .donut .mid .n { font-size: 13px; }
   .facts { grid-template-columns: repeat(auto-fit, minmax(108px, 1fr)); gap: 6px; }
   .fact { padding: 8px 9px; }
-  .fv { font-size: 12.5px; }
+  .fv { font-size: 13px; }
   /* 좁은 화면에서는 달이 12칸이라 글자가 겹친다. 연도와 금액은 접는다 */
   .nchips { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
   .bars { gap: 5px; padding: 16px 10px 10px 44px; }
   .yax { top: 18px; height: 132px; }
   .yax i { left: 40px; right: 10px; }
-  .yax b { width: 34px; font-size: 9.5px; }
+  .yax b { width: 34px; font-size: 10.5px; }
   .bcol { padding-top: 2px; }
   .bcol .area { height: 132px; }
-  .bcol.now .sum, .bcol.open .sum { font-size: 10.5px; }
+  .bcol.now .sum, .bcol.open .sum { font-size: 11.5px; }
   /* 하나를 펼치면 그 달 금액만 보여 라벨이 겹치지 않게 한다 */
   .bars:has(.bcol.open) .bcol.now:not(.open) .sum { display: none; }
-  .bcol .mon { font-size: 9.5px; margin-top: 6px; }
-  .bcol .mon .yy { font-size: 8px; }
+  .bcol .mon { font-size: 10.5px; margin-top: 6px; }
+  .bcol .mon .yy { font-size: 9.5px; }
   .legend { padding: 0 15px 16px; gap: 6px 14px; }
   .mini { gap: 7px; }
 }
 
 @media (max-width: 400px) {
   .hero .v { font-size: 29px; }
-  .rside .rval { font-size: 13px; }
-  .rtitle { font-size: 13.5px; }
-  .ava { width: 30px; height: 30px; font-size: 13px; }
+  .rside .rval { font-size: 13.5px; }
+  .rtitle { font-size: 14px; }
+  .ava { width: 30px; height: 30px; font-size: 13.5px; }
 }
 
 @media print {
@@ -1813,10 +1858,10 @@ def 목록_결제자(A):
         금 = A["사람별"][사람]
         행.append(f"""<div class="row" data-kind="member" data-key="{esc(사람)}">
   <div class="rmain">
-    <div class="rtitle" style="font-size:14px"><span class="nm">{esc(사람)}</span></div>
+    <div class="rtitle" style="font-size: 14.5px"><span class="nm">{esc(사람)}</span></div>
     <div class="track"><i style="width:{금/총*100:.1f}%;background:#B4BECB"></i></div>
   </div>
-  <div class="rside"><div class="rval tnum" style="font-size:14.5px">{돈(금)}</div>
+  <div class="rside"><div class="rval tnum" style="font-size: 15px">{돈(금)}</div>
     <div class="rsub">{금/총*100:.1f}%</div></div>
   <div class="chev"></div>
 </div>""")
@@ -2035,7 +2080,7 @@ def 목록_전월대비(이번, 지난, 행들):
     <div class="rtitle"><span class="nm">{esc(r["카테고리"])}</span>{칩}</div>
     <div class="rmeta">{esc(지난)} {돈(r["지난달"])} → {esc(이번)} {돈(r["이번달"])}</div>
   </div>
-  <div class="rside"><div class="rval tnum" style="color:{색};font-size:14px">{esc(비율)}</div></div>
+  <div class="rside"><div class="rval tnum" style="color:{색};font-size: 14.5px">{esc(비율)}</div></div>
   <div class="chev"></div>
 </div>""")
     return f"""<div class="card pad" data-group>{접기(행, 5, "개")}
@@ -2350,9 +2395,48 @@ def 자산상세판(x, 분류금액, 총자산):
             f'{f"<div class=hnote>{남은비고}</div>" if 남은비고 else ""}</div>')
 
 
+def 자산히어로(자산, 보험, 점검):
+    """자산·보험 탭 맨 위. 다른 두 탭과 같은 얼굴로 열리게 한다."""
+    총 = 자산["총자산"]
+    if not 총:
+        return ""
+    분류 = sorted(((k, v) for k, v in 자산["분류별"].items() if k != "부채"),
+                key=lambda kv: -kv[1])
+    밝은색 = ["#2BE39B", "#5AB7FF", "#BCC924", "#FFB86B", "#C6A8FF"]
+    칸 = "".join(
+        f'<span style="width:{v/총*100:.2f}%;background:{밝은색[i % len(밝은색)]}" '
+        f'title="{esc(k)} {돈(v)}"></span>' for i, (k, v) in enumerate(분류))
+    칩 = "".join(
+        f'<span class="hchip"><i style="background:{밝은색[i % len(밝은색)]}"></i>'
+        f'{esc(k)} <b>{v/총*100:.1f}%</b></span>' for i, (k, v) in enumerate(분류))
+
+    보험료 = sum(s.get("월보험료") or 0 for s in 보험["증권"])
+    아래 = []
+    if 자산["부채"]:
+        아래.append(f'<span class="pill ghost">부채 빼면 순자산 {짧은돈(자산["순자산"])}</span>')
+    if 보험["증권"]:
+        아래.append(f'<span class="pill ghost">보험 증권 {len(보험["증권"])}건 · '
+                   f'월 {돈(보험료)}</span>')
+    경고 = sum(1 for s in 점검 if s["급"] == "warn")
+    if 경고:
+        아래.append(f'<span class="pill up">확인해볼 것 {경고}가지</span>')
+
+    return f"""<div class="hero">
+  <div class="k">총자산 · 직접 적어 넣은 {len(자산["항목"])}건 기준</div>
+  <div class="v tnum">{총:,}<span>원</span></div>
+  <div class="cmp">{''.join(아래)}</div>
+  <div class="hsplit">{칸}</div>
+  <div class="hchips">{칩}</div>
+</div>"""
+
+
 def 구역_자산(자산, 종목=None, 뉴스=None, 재무=None):
-    """유형별로 묶고 소계를 보여준다. 줄을 누르면 그 안의 항목이 펼쳐진다.
-    (자산 관리 앱들이 공통으로 쓰는 방식 — 현금·투자·부동산·대출로 묶고 그룹마다 소계)"""
+    """세 단계로 판다. 유형 → 상품 종류 → 어느 기관 → 그 안의 종목.
+
+    증권사가 여러 곳이면 '국내주식'을 먼저 묶고 그 아래에 증권사를 늘어놓는다.
+    한 기관뿐인 상품은 단계를 더 만들지 않고 바로 상세로 간다.
+    (자산 관리 앱들이 공통으로 쓰는 방식 — 유형별 소계를 먼저 보여준다)
+    """
     if not 자산["항목"]:
         return ""
     분류 = sorted(((k, v) for k, v in 자산["분류별"].items() if k != "부채"), key=lambda kv: -kv[1])
@@ -2362,36 +2446,77 @@ def 구역_자산(자산, 종목=None, 뉴스=None, 재무=None):
 
     묶음, 속도넛들 = [], []
     for 묶음번호, (이름, 금) in enumerate(분류):
-        속한 = sorted((x for x in 자산["항목"] if x["분류"] == 이름), key=lambda x: -x["금액"])
-        최대 = 속한[0]["금액"] if 속한 else 1
-        속단계 = 농담(len(속한), "파랑")
-        속색 = {x["세부항목"] + x["기관"]: 속단계[i] for i, x in enumerate(속한)}
-        속이름 = {x["세부항목"] + x["기관"]:
-                (x["세부항목"] + (" · " + x["기관"] if x["기관"] else "")) for x in 속한}
+        속한 = [x for x in 자산["항목"] if x["분류"] == 이름]
+
+        # 같은 상품 종류(국내주식·연금저축펀드…)끼리 먼저 묶는다
+        종류 = {}
+        for x in 속한:
+            종류.setdefault(x["세부항목"], []).append(x)
+        종류목록 = sorted(종류.items(), key=lambda kv: -sum(y["금액"] for y in kv[1]))
+        최대 = sum(y["금액"] for y in 종류목록[0][1]) if 종류목록 else 1
+        속단계 = 농담(len(종류목록), "파랑")
+        속색 = {k: 속단계[i] for i, (k, _) in enumerate(종류목록)}
 
         조각 = []
-        for i, x in enumerate(속한):
-            종목들 = (종목 or {}).get((x["사람"], x["기관"], x["세부항목"]))
-            안내 = f'<span class="tag">종목 {len(종목들)}개</span>' if 종목들 else ""
-            속 = (종목판(종목들, x["금액"], x["기관"], x["사람"], 뉴스, 재무) if 종목들
-                 else 자산상세판(x, 금, 총))
+        for i, (종류명, 것들) in enumerate(종류목록):
+            소계 = sum(y["금액"] for y in 것들)
+            것들 = sorted(것들, key=lambda y: -y["금액"])
+
+            def 상세(x):
+                종목들 = (종목 or {}).get((x["사람"], x["기관"], x["세부항목"]))
+                return (종목판(종목들, x["금액"], x["기관"], x["사람"], 뉴스, 재무) if 종목들
+                        else 자산상세판(x, 소계, 총)), 종목들
+
+            if len(것들) == 1:
+                x = 것들[0]
+                속, 종목들 = 상세(x)
+                꼬리 = (f'{esc(x["사람"].split("_")[0])}'
+                       f'{" · " + esc(x["기관"]) if x["기관"] else ""}')
+                안내 = f'<span class="tag">종목 {len(종목들)}개</span>' if 종목들 else ""
+            else:
+                기관단계 = 농담(len(것들), "파랑")
+                줄 = []
+                for j, x in enumerate(것들):
+                    속2, 종목들 = 상세(x)
+                    안내2 = f'<span class="tag">종목 {len(종목들)}개</span>' if 종목들 else ""
+                    줄.append(
+                        f'<div class="row aitem lv3" data-acc>'
+                        f'<span class="dot2" style="background:{기관단계[j]}"></span>'
+                        f'<div class="rmain">'
+                        f'<div class="rtitle"><span class="nm">'
+                        f'{esc(x["기관"] or x["세부항목"])}</span>{안내2}</div>'
+                        f'<div class="rmeta">{esc(x["사람"].split("_")[0])} 명의</div>'
+                        f'<div class="track"><i style="width:{x["금액"]/소계*100:.1f}%;'
+                        f'background:{기관단계[j]}"></i></div></div>'
+                        f'<div class="rside"><div class="rval tnum">{돈(x["금액"])}</div>'
+                        f'<div class="rsub">{x["금액"]/소계*100:.0f}%</div></div>'
+                        f'<div class="chev"></div></div>'
+                        f'<div class="acc-body" hidden>{속2}</div>')
+                속 = "".join(줄)
+                기관들 = []
+                for x in 것들:
+                    이곳 = x["기관"] or x["사람"]
+                    if 이곳 not in 기관들:
+                        기관들.append(이곳)
+                꼬리 = " · ".join(기관들)
+                안내 = f'<span class="tag">{len(것들)}곳</span>'
+
             조각.append(
                 f'<div class="row aitem" data-acc>'
                 f'<span class="dot2" style="background:{속단계[i]}"></span>'
                 f'<div class="rmain">'
-                f'<div class="rtitle"><span class="nm">{esc(x["세부항목"])}</span>{안내}</div>'
-                f'<div class="rmeta">{esc(x["사람"].split("_")[0])}'
-                f'{" · " + esc(x["기관"]) if x["기관"] else ""}</div>'
-                f'<div class="track"><i style="width:{x["금액"]/최대*100:.1f}%;'
+                f'<div class="rtitle"><span class="nm">{esc(종류명)}</span>{안내}</div>'
+                f'<div class="rmeta">{꼬리}</div>'
+                f'<div class="track"><i style="width:{소계/최대*100:.1f}%;'
                 f'background:{속단계[i]}"></i></div></div>'
-                f'<div class="rside"><div class="rval tnum">{돈(x["금액"])}</div>'
-                f'<div class="rsub">{x["금액"]/금*100:.0f}%</div></div>'
+                f'<div class="rside"><div class="rval tnum">{돈(소계)}</div>'
+                f'<div class="rsub">{소계/금*100:.0f}%</div></div>'
                 f'<div class="chev"></div></div>'
                 f'<div class="acc-body" hidden>{속}</div>')
 
         속도넛들.append(
             f'<div class="subdonut" data-for="{묶음번호}" hidden>'
-            f'{도넛([(x["세부항목"] + x["기관"], x["금액"]) for x in 속한], 속색, 금, esc(이름), 6, 속이름)}'
+            f'{도넛([(k, sum(y["금액"] for y in v)) for k, v in 종류목록], 속색, 금, esc(이름))}'
             f'</div>')
         항목줄 = "".join(조각)
         묶음.append(f"""<div class="row" data-acc data-donut="{묶음번호}">
@@ -2418,7 +2543,8 @@ def 구역_자산(자산, 종목=None, 뉴스=None, 재무=None):
     <div class="pad" style="padding:8px 6px">{''.join(묶음)}</div>
   </div>
 </div>
-<div class="check">유형을 누르면 그 안에 무엇이 들어 있는지 펼쳐집니다.</div>{부채줄}"""
+<div class="check">유형 → 상품 → 어느 기관 순서로 펼쳐집니다.
+증권사가 여러 곳이면 한 단계 더 들어갑니다.</div>{부채줄}"""
 
 
 def 구역_보험(보험, 가족들):
@@ -2463,11 +2589,11 @@ def 구역_보험(보험, 가족들):
   <div class="rmain"><div class="rtitle">{esc(s["보험사"])} {esc(s["상품명"])}{세대}</div>
     <div class="rmeta">{esc(s["사람"])} · {esc(s["계약일"])} ~ {esc(s["만기일"])}
       · 보장 {len(s["보장"])}개{" · " + esc(s["비고"]) if s["비고"] else ""}</div></div>
-  <div class="rside"><div class="rval tnum" style="font-size:14px">{보험료}</div></div>
+  <div class="rside"><div class="rval tnum" style="font-size: 14.5px">{보험료}</div></div>
 </div>""")
 
     전체판 = (f'<div class="card pad">{접기(줄, 6, "개")}</div>'
-             f'<h2 style="margin-top:26px;font-size:15px">가입한 증권 {len(보험["증권"])}건</h2>'
+             f'<h2 style="margin-top:26px;font-size: 15px">가입한 증권 {len(보험["증권"])}건</h2>'
              f'<div class="card pad">{접기(증권줄, 5, "건")}</div>')
 
     # ── 사람별 화면 ──────────────────────────────────────────────────
@@ -2566,7 +2692,7 @@ def 사람보험판(이름, 증권들, 보험, 순서):
   <div class="rmain"><div class="rtitle"><span class="nm">{esc(s["보험사"])} {esc(s["상품명"])}</span>{세대}</div>
     <div class="rmeta">{esc(s["계약일"])} ~ {esc(s["만기일"])} · 보장 {len(s["보장"])}개
       {" · " + esc(s["비고"]) if s["비고"] else ""}</div></div>
-  <div class="rside"><div class="rval tnum" style="font-size:13.5px">{료}</div></div>
+  <div class="rside"><div class="rval tnum" style="font-size: 14px">{료}</div></div>
 </div>""")
 
     return f"""<div class="pstat">
@@ -2576,7 +2702,7 @@ def 사람보험판(이름, 증권들, 보험, 순서):
   <div><div class="k">보장 항목</div><div class="v tnum">{len(내보장)}개</div></div>
 </div>
 {보장판}{공백칸}
-<h2 style="margin-top:26px;font-size:15px">{esc(이름.split("_")[0])} 님 증권 {len(증권들)}건</h2>
+<h2 style="margin-top:26px;font-size: 15px">{esc(이름.split("_")[0])} 님 증권 {len(증권들)}건</h2>
 <div class="card pad">{"".join(증권줄)}</div>"""
 
 
@@ -3195,6 +3321,7 @@ def html만들기(A, 거래들, 입력파일, 자산, 보험, 가족들, 종목,
   <section class="panel" id="p-wealth" role="tabpanel">
   <p class="tab-lead"><b>지금 이 시점에 가진 것과, 그것을 지키는 보장.</b>
   드나든 돈이 아니라 <b>남아 있는 잔고</b> 기준입니다.</p>
+  {자산히어로(자산, 보험, 점검)}
 
   {f'''<h2>자산 현황</h2>
   <p class="lead">총 {돈(자산["총자산"])} · 직접 적어 넣은 자산 {len(자산["항목"])}건 기준입니다.</p>
