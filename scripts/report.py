@@ -13,6 +13,7 @@ import csv
 import datetime as dt
 import html
 import json
+import colorsys
 import math
 import re
 import statistics
@@ -40,8 +41,9 @@ from pathlib import Path
 공통색 = "#7C8BA1"
 회색 = "#C7CDD6"
 
-초록농담 = ["#00563A", "#00764E", "#009261", "#00A86B", "#2CBE88",
-         "#59CFA4", "#86DFBF", "#AEEAD4", "#CFF3E5", "#E6F9F1"]
+def _hsl(h, s, l):
+    r, g, b = colorsys.hls_to_rgb((h % 360) / 360, l / 100, s / 100)
+    return "#%02X%02X%02X" % (round(r * 255), round(g * 255), round(b * 255))
 
 
 # 한눈에 알아보게 붙이는 그림글자. Windows·Mac 에 기본으로 깔린 것만 쓴다.
@@ -73,9 +75,23 @@ def 그림칸(이름, 표=None, 기본="🧩") -> str:
     return f'<div class="ico">{아이콘(이름, 표, 기본)}</div>'
 
 
-def 농담(n):
-    """큰 것부터 진하게. 단계가 모자라면 가장 연한 색으로 채운다."""
-    return [초록농담[i] if i < len(초록농담) else 초록농담[-1] for i in range(n)]
+def 농담(n, 계열="초록"):
+    """한 계열 안에서 색상·채도·밝기를 함께 조금씩 옮겨 서로 구분되게 만든다.
+
+    같은 색을 밝기만 바꿔 늘어놓으면 항목이 열 개를 넘을 때 구분이 안 된다.
+    색상을 좁은 범위에서 같이 돌리면 한 식구로 보이면서도 서로 구별된다.
+    큰 항목이 진하고 작은 항목이 연하다.
+    """
+    띠 = {
+        "초록": (172, 88, 58, 56, 25, 64),      # 청록 → 연두 (소비)
+        "파랑": (214, 166, 60, 54, 30, 66),      # 남색 → 청록 (자산)
+        "보라": (272, 200, 52, 50, 34, 66),
+    }
+    h0, h1, s0, s1, l0, l1 = 띠.get(계열, 띠["초록"])
+    if n <= 1:
+        return [_hsl(h0, s0, l0 + 8)]
+    걸음 = lambda a, b, i: a + (b - a) * (i / (n - 1))          # noqa: E731
+    return [_hsl(걸음(h0, h1, i), 걸음(s0, s1, i), 걸음(l0, l1, i)) for i in range(n)]
 
 CSS = """
 :root {
@@ -320,7 +336,11 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
 .rsub { font-size: 12px; color: var(--ink3); margin-top: 1px; font-variant-numeric: tabular-nums; }
 
 .track { height: 6px; border-radius: 999px; background: #EDF1F5; margin-top: 8px; overflow: hidden; }
-.track i { display: block; height: 100%; border-radius: 999px; }
+.track i {
+  display: block; height: 100%; border-radius: 999px;
+  background-image: linear-gradient(90deg, rgba(255,255,255,.28), rgba(255,255,255,0));
+  transition: width .3s cubic-bezier(.4,0,.2,1);
+}
 
 .tag {
   font-size: 11px; font-weight: 700; border-radius: 999px;
@@ -330,6 +350,16 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
 
 /* ---------- 도넛 ---------- */
 .donutbox { display: grid; grid-template-columns: 210px 1fr; gap: 6px; align-items: center; }
+.card.focus .donutbox { grid-template-columns: 132px 1fr; align-items: start; }
+.card.focus > .donutbox > .donut {
+  width: 112px; height: 112px; opacity: .38; margin-top: 14px;
+}
+.card.focus > .donutbox > .donut .mid .n { font-size: 13px; }
+.card.focus > .donutbox > .donut .mid .t { font-size: 10px; }
+.donut { transition: width .22s ease, height .22s ease, opacity .22s ease; }
+.subdonut { display: flex; justify-content: center; padding: 6px 0 2px; }
+.subdonut .donut { width: 158px; height: 158px; margin: 6px auto; }
+.subdonut .donut .mid .n { font-size: 16px; }
 .donut { position: relative; width: 190px; height: 190px; margin: 14px auto; }
 .donut svg { width: 100%; height: 100%; display: block; transform: rotate(-90deg); }
 .donut .mid {
@@ -1220,9 +1250,11 @@ def 도넛(항목들, 색맵, 총, 가운데="총지출"):
     for 이름, 금 in 항목들:
         비 = 금 / 총 if 총 else 0
         길이 = C * 비
+        틈 = min(2.2, 길이 * 0.18) if 비 > 0.012 else 0      # 조각 사이 숨구멍
         조각.append(
             f'<circle cx="80" cy="80" r="{r}" fill="none" stroke="{색맵.get(이름, 회색)}" '
-            f'stroke-width="{두께}" stroke-dasharray="{길이:.2f} {C-길이:.2f}" '
+            f'stroke-width="{두께}" stroke-linecap="butt" '
+            f'stroke-dasharray="{max(0.4, 길이-틈):.2f} {C-길이+틈:.2f}" '
             f'stroke-dashoffset="{-누적:.2f}"><title>{esc(이름)} {돈(금)}</title></circle>')
         누적 += 길이
     return f"""<div class="donut">
@@ -1462,7 +1494,7 @@ def 구역_자산(자산, 종목=None):
     if not 자산["항목"]:
         return ""
     분류 = sorted(((k, v) for k, v in 자산["분류별"].items() if k != "부채"), key=lambda kv: -kv[1])
-    단계 = 농담(len(분류))
+    단계 = 농담(len(분류), "파랑")
     색맵 = {k: 단계[i] for i, (k, _) in enumerate(분류)}
     총 = 자산["총자산"]
 
@@ -1489,7 +1521,12 @@ def 구역_자산(자산, 종목=None):
                 f'<div class="rsub">{x["금액"]/금*100:.0f}%</div></div>{화살}</div>')
             if 종목들:
                 조각.append(f'<div class="acc-body" hidden>{종목판(종목들, x["금액"])}</div>')
-        항목줄 = "".join(조각)
+
+        속단계 = 농담(len(속한), "파랑")
+        속색 = {x["세부항목"] + x["기관"]: 속단계[i] for i, x in enumerate(속한)}
+        속도넛 = 도넛([(x["세부항목"] + x["기관"], x["금액"]) for x in 속한],
+                   속색, 금, esc(이름))
+        항목줄 = (f'<div class="subdonut">{속도넛}</div>' if len(속한) > 1 else "") + "".join(조각)
         묶음.append(f"""<div class="row" data-acc>
   <div class="ico" style="background:{색맵[이름]}26">{아이콘(이름, 자산아이콘, "🏦")}</div>
   <div class="rmain">
@@ -1957,6 +1994,8 @@ JS = """
     if (!몸 || !몸.classList.contains('acc-body')) return;
     몸.hidden = !몸.hidden;
     r.classList.toggle('open', !몸.hidden);
+    var 카드 = r.closest('.card');
+    if (카드) 카드.classList.toggle('focus', !!카드.querySelector('.row[data-acc].open'));
   });
 
   // ── 사람 고르기 (보험) ────────────────────────────────────────────────
