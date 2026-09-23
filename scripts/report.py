@@ -236,7 +236,12 @@ body {
 .hnote { font-size: 11.5px; color: var(--ink2); margin-top: 9px; line-height: 1.6; }
 
 /* 회사 기본 개요·투자 지표 — 공시 재무 */
-.finbox { margin: 4px 0 8px; padding: 9px 0 0; border-top: 1px dotted var(--line); }
+/* 회사 숫자 칸과 소식 칸은 성격이 다르다. 바탕색과 왼쪽 띠로 갈라 놓는다. */
+.finbox {
+  margin: 10px 0 8px; padding: 11px 13px 12px;
+  background: #F4F7FB; border-radius: var(--r-md);
+  border-left: 3px solid #45A2BC;
+}
 .fins { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 6px; }
 .fin { background: #F6F8FA; border-radius: var(--r-sm); padding: 7px 9px; }
 .fin .fk { font-size: 10.5px; color: var(--ink2); font-weight: 700; white-space: nowrap; }
@@ -244,20 +249,35 @@ body {
            font-variant-numeric: tabular-nums; }
 
 /* 오늘의 소식 — 키워드 단추, 누르면 제목과 원문 링크 */
-.news { margin: 2px 0 10px; padding: 9px 0 0; border-top: 1px dotted var(--line); }
-.nlabel { font-size: 11.5px; color: var(--ink2); font-weight: 800; margin-bottom: 8px; }
-.nchips { display: flex; flex-direction: column; gap: 4px; }
+.news {
+  margin: 8px 0 10px; padding: 11px 13px 12px;
+  background: #FFF8EC; border-radius: var(--r-md);
+  border-left: 3px solid #D99E3A;
+}
+.nlabel {
+  font-size: 11.5px; color: var(--ink); font-weight: 800; margin-bottom: 8px;
+  display: flex; align-items: baseline; flex-wrap: wrap;
+}
+.finbox .nlabel + .fins { margin-bottom: 11px; }
+.finbox .fin { background: #fff; }
+.news .nchip { background: #fff; border-color: #EFE2CB; }
+.news .nchip:hover { border-color: #D99E3A; }
+.news .nbox { background: #fff; border-left-color: #D99E3A; }
+.nchips {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(178px, 1fr));
+  gap: 5px; align-items: stretch;
+}
 .nchip {
   border: 1px solid var(--line); background: var(--surface); color: var(--ink);
-  font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
-  padding: 7px 11px; border-radius: 8px; text-align: left;
-  line-height: 1.4; word-break: keep-all;
-  display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+  font-family: inherit; font-size: 11.5px; font-weight: 700; cursor: pointer;
+  padding: 7px 9px; border-radius: 8px; text-align: left;
+  line-height: 1.38; word-break: keep-all;
+  display: flex; flex-direction: column; justify-content: space-between; gap: 3px;
   transition: background .13s, border-color .13s, color .13s;
 }
 .nchip .nsrc {
-  font-size: 10px; color: var(--ink3); font-weight: 600;
-  flex: 0 0 auto; white-space: nowrap;
+  font-size: 9.5px; color: var(--ink3); font-weight: 600; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
 }
 .nsub { font-size: 10.5px; color: var(--ink3); font-weight: 600; margin-left: 7px; }
 .nchip[aria-pressed="true"] .nsrc { color: #C9D2DC; }
@@ -434,22 +454,31 @@ body {
 
 /* ---------- 번 돈 − 쓴 돈 = 남은 돈 ---------- */
 .flow {
+  position: relative; overflow: hidden;
   display: grid; grid-template-columns: 1fr auto 1fr auto 1fr;
   align-items: center; gap: 6px;
-  background: var(--surface); border-radius: var(--r-md);
-  padding: 18px 16px; box-shadow: var(--sh);
+  background: linear-gradient(142deg, #0C1626 0%, #123044 46%, #0B4636 100%);
+  border-radius: var(--r-lg); color: #fff;
+  padding: 22px 20px;
+  box-shadow: 0 10px 30px rgba(9,26,38,.26), 0 2px 6px rgba(9,26,38,.16);
 }
+.flow::after {
+  content: ""; position: absolute; right: -70px; top: -90px;
+  width: 260px; height: 260px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,198,126,.34) 0%, rgba(0,198,126,0) 68%);
+  pointer-events: none;
+}
+.flow > * { position: relative; z-index: 1; }
 .fcell { text-align: center; min-width: 0; }
-.fcell.key { background: var(--brand-soft); border-radius: var(--r-sm); padding: 8px 6px; margin: -8px -2px; }
-.fk { font-size: 12px; color: var(--ink2); font-weight: 700; }
+.fcell.key { background: rgba(255,255,255,.1); border-radius: var(--r-sm); padding: 10px 6px; margin: -10px -2px; }
+.fk { font-size: 12px; color: rgba(255,255,255,.72); font-weight: 700; }
 .fv {
-  font-size: 19px; font-weight: 800; letter-spacing: -0.04em; margin: 4px 0 2px;
+  font-size: 21px; font-weight: 800; letter-spacing: -0.045em; margin: 5px 0 2px; color: #fff;
   font-variant-numeric: tabular-nums; white-space: nowrap;
   overflow: hidden; text-overflow: ellipsis;
 }
-.fv.in { color: var(--ink); }
-.fs { font-size: 11.5px; color: var(--ink3); }
-.fop { font-size: 17px; font-weight: 800; color: var(--ink3); padding: 0 2px; }
+.fs { font-size: 11.5px; color: rgba(255,255,255,.6); }
+.fop { font-size: 18px; font-weight: 800; color: rgba(255,255,255,.45); padding: 0 2px; }
 .tab-lead {
   font-size: 13px; color: var(--ink2); line-height: 1.6;
   margin: 0 0 18px; padding: 11px 14px;
@@ -523,22 +552,50 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
 .tag.warn { background: var(--up-soft); color: var(--up); }
 
 /* ---------- 도넛 ---------- */
-.donutbox { display: grid; grid-template-columns: 210px 1fr; gap: 6px; align-items: center; }
-.card.focus .donutbox { grid-template-columns: 172px 1fr; align-items: start; }
+.donutbox { display: grid; grid-template-columns: 218px 1fr; gap: 6px; align-items: center; }
+.card.focus .donutbox { grid-template-columns: 186px 1fr; align-items: start; }
 /* 유형을 펼치면 총자산 도넛은 작고 흐리게 물러나고, 펼친 유형이 앞에 선다 */
-.card.focus .donutcol > .donut {
-  width: 96px; height: 96px; opacity: .3; filter: saturate(.55);
-  margin: 6px auto 2px;
+.card.focus .donutcol > .dwrap > .donut {
+  width: 92px; height: 92px; opacity: .32; filter: saturate(.55);
+  margin: 0 auto 2px;
 }
-.card.focus .donutcol > .donut .mid .n { font-size: 11px; }
-.card.focus .donutcol > .donut .mid .t { font-size: 9px; }
+.card.focus .donutcol > .dwrap { padding-top: 2px; }
+.card.focus .donutcol > .dwrap > .dleg { display: none; }   /* 펼친 유형의 범례만 남긴다 */
+.card.focus .donutcol > .dwrap > .donut .mid .n { font-size: 11px; }
+.card.focus .donutcol > .dwrap > .donut .mid .t { font-size: 9px; }
+.card.focus .donutcol > .dwrap > .donut .dseg { display: none; }
 .donut { transition: width .22s ease, height .22s ease, opacity .22s ease; }
 /* 왼쪽 칸: 총자산 도넛 아래에 지금 펼친 유형의 도넛이 따라 붙는다 */
-.donutcol { position: sticky; top: 66px; }
+/* sticky 는 쓰지 않는다. 카드에 overflow:hidden 이 걸려 있어 따라 내려오지 못하고
+   위쪽에 66px 빈칸만 만든다. */
+.donutcol { padding-top: 6px; }
+.card.focus .donutcol { padding-top: 4px; }
 .subdonut { padding-top: 2px; }
 .subdonut[hidden] { display: none; }
-.subdonut .donut { width: 150px; height: 150px; margin: 2px auto 8px; }
+.subdonut .donut { width: 150px; height: 150px; margin: 2px auto 6px; }
 .subdonut .donut .mid .n { font-size: 14px; }
+
+/* 도넛 조각 위의 비중 */
+.dseg {
+  font-size: 9px; font-weight: 800; fill: #fff; text-anchor: middle;
+  dominant-baseline: central; letter-spacing: -0.03em;
+  paint-order: stroke; stroke: rgba(0,0,0,.28); stroke-width: 2.2px; stroke-linejoin: round;
+  pointer-events: none;
+}
+/* 도넛 아래 항목 목록 */
+.dleg { padding: 0 10px 10px; display: flex; flex-direction: column; gap: 4px; }
+.dl {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11.5px; line-height: 1.35; white-space: nowrap;
+}
+.dl .dot2 { width: 8px; height: 8px; }
+.dl .dln {
+  flex: 1 1 auto; min-width: 0; font-weight: 700; color: var(--ink);
+  overflow: hidden; text-overflow: ellipsis;
+}
+.dl .dlv { flex: none; font-size: 10.5px; color: var(--ink3); font-weight: 600; }
+.dl .dlp { flex: none; font-weight: 800; color: var(--ink); width: 40px; text-align: right; }
+.dl.more-line .dln, .dl.more-line .dlp { color: var(--ink2); font-weight: 700; }
 
 /* 자산 항목 상세 — 중요한 것만 단추처럼 */
 .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 8px; }
@@ -601,7 +658,11 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
 .bcol .stk i:hover { filter: brightness(1.12); }
 .bcol.open .stk { box-shadow: 0 0 0 2px var(--brand); }
 .bcol.open { background: var(--brand-soft); }
-.bcol .mon { font-size: 12px; color: var(--ink3); margin-top: 10px; }
+.bcol .mon {
+  font-size: 11px; color: var(--ink2); margin-top: 9px;
+  font-variant-numeric: tabular-nums; letter-spacing: -0.02em; font-weight: 600;
+}
+.bcol .mon .yy { display: block; font-size: 9px; color: var(--ink3); font-weight: 600; }
 .bcol.now .mon { color: var(--ink); font-weight: 700; }
 .bcol.open .mon { color: var(--brand-deep); font-weight: 800; }
 
@@ -774,9 +835,9 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
    ========================================================================== */
 @media (max-width: 720px) {
   body { padding: 22px 16px 60px; }
-  .flow { grid-template-columns: 1fr; gap: 2px; padding: 14px; }
+  .flow { grid-template-columns: 1fr; gap: 2px; padding: 18px 16px; }
   .fcell { display: flex; align-items: baseline; justify-content: space-between; text-align: left; gap: 10px; }
-  .fcell.key { margin: 4px 0 0; padding: 10px 12px; }
+  .fcell.key { margin: 6px 0 0; padding: 10px 12px; }
   .fk { flex: 0 0 auto; }
   .fv { font-size: 17px; margin: 0; }
   .fs { flex: 1 1 100%; text-align: right; margin-top: -2px; }
@@ -810,7 +871,7 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
   .fact { padding: 8px 9px; }
   .fv { font-size: 12.5px; }
   /* 좁은 화면에서는 달이 12칸이라 글자가 겹친다. 연도와 금액은 접는다 */
-  .nchip { flex-wrap: wrap; gap: 2px 8px; }
+  .nchips { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
   .bars { gap: 5px; padding: 16px 10px 10px 44px; }
   .yax { top: 18px; height: 132px; }
   .yax i { left: 40px; right: 10px; }
@@ -820,8 +881,8 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
   .bcol.now .sum, .bcol.open .sum { font-size: 10.5px; }
   /* 하나를 펼치면 그 달 금액만 보여 라벨이 겹치지 않게 한다 */
   .bars:has(.bcol.open) .bcol.now:not(.open) .sum { display: none; }
-  .bcol .mon { font-size: 10.5px; margin-top: 7px; }
-  .bcol .mon .yy { display: none; }
+  .bcol .mon { font-size: 9.5px; margin-top: 6px; }
+  .bcol .mon .yy { font-size: 8px; }
   .legend { padding: 0 15px 16px; gap: 6px 14px; }
   .mini { gap: 7px; }
 }
@@ -837,7 +898,11 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
   body { background: #fff; }
   .hint, .detail-host, .check { display: none !important; }
   .card, .hero, .stat, .footer { box-shadow: none; border: 1px solid var(--line); }
-  .hero { background: #fff !important; color: var(--ink) !important; }
+  .hero, .flow { background: #fff !important; color: var(--ink) !important;
+                 box-shadow: none; border: 1px solid var(--line); }
+  .fk, .fs { color: var(--ink2) !important; }
+  .fv { color: var(--ink) !important; }
+  .flow::after { display: none; }
   .hero .k, .hero .cmp, .hero .minihint { color: var(--ink2) !important; }
   .hero .v, .hero .cmp .hl { color: var(--ink) !important; }
   .hero::after, .stat::before { display: none; }
@@ -1560,7 +1625,7 @@ def 구역_수입(A, 색맵):
     <div class="fs">월평균 {짧은돈(쓴돈 / 개월)}</div></div>
   <div class="fop">=</div>
   <div class="fcell key"><div class="fk">남은 돈</div>
-    <div class="fv tnum" style="color:{'var(--brand-deep)' if 좋음 else 'var(--up)'}">
+    <div class="fv tnum" style="color:{'#57E0A9' if 좋음 else '#FF9FA0'}">
       {'' if 좋음 else '−'}{돈(남은돈)}</div>
     <div class="fs">번 돈의 {비율:.0f}% · 월평균 {짧은돈(abs(남은돈) / 개월)}</div></div>
 </div>"""
@@ -1616,7 +1681,7 @@ def 구역_수입(A, 색맵):
       <i style="height:100%;background:{'var(--brand)' if 튐 else '#9FB3C8'}"
          title="{esc(월)} 수입 {돈(합)}"></i></div>
   </div>
-  <div class="mon"><span class="yy">{esc(월[:4])}.</span>{int(월[5:])}월</div>
+  <div class="mon"><span class="yy">’{esc(월[2:4])}</span>{esc(월[5:7])}</div>
 </div>""")
 
     return f"""{흐름}{띠}
@@ -1772,11 +1837,15 @@ def 비중막대(항목들, 색맵):
     return f'<div class="split">{칸}</div><div class="legend">{범례}</div>'
 
 
-def 도넛(항목들, 색맵, 총, 가운데="총지출"):
-    """항목들 = [(이름, 금액)]. 회전은 CSS transform 으로 처리한다."""
+def 도넛(항목들, 색맵, 총, 가운데="총지출", 범례수=6, 이름표=None):
+    """항목들 = [(이름, 금액)]. 회전은 CSS transform 으로 처리한다.
+
+    조각 위에는 비중(%)을, 아래에는 이름·금액·비중을 적는다.
+    색만으로는 어느 조각이 무엇인지 알 수 없다.
+    """
     r, 두께 = 62, 22
     C = 2 * math.pi * r
-    누적, 조각 = 0.0, []
+    누적, 조각, 글자 = 0.0, [], []
     for 이름, 금 in 항목들:
         비 = 금 / 총 if 총 else 0
         길이 = C * 비
@@ -1786,13 +1855,43 @@ def 도넛(항목들, 색맵, 총, 가운데="총지출"):
             f'stroke-width="{두께}" stroke-linecap="butt" '
             f'stroke-dasharray="{max(0.4, 길이-틈):.2f} {C-길이+틈:.2f}" '
             f'stroke-dashoffset="{-누적:.2f}"><title>{esc(이름)} {돈(금)}</title></circle>')
+        if 비 >= 0.075:                       # 너무 좁은 조각에는 글자가 안 들어간다
+            각 = 2 * math.pi * (누적 / C + 비 / 2)
+            x, y = 80 + r * math.cos(각), 80 + r * math.sin(각)
+            # svg 를 -90도 돌려 놓았으므로 글자는 되돌려 세운다
+            글자.append(f'<text class="dseg" x="{x:.1f}" y="{y:.1f}" '
+                       f'transform="rotate(90 {x:.1f} {y:.1f})">{비*100:.0f}%</text>')
         누적 += 길이
-    return f"""<div class="donut">
-  <svg viewBox="0 0 160 160" role="img" aria-label="카테고리 비중">
-    <circle cx="80" cy="80" r="{r}" fill="none" stroke="#EDF1F5" stroke-width="{두께}"/>
-    {''.join(조각)}
-  </svg>
-  <div class="mid"><div class="t">{가운데}</div><div class="n tnum">{짧은돈(총)}</div></div>
+
+    이름표 = 이름표 or {}
+    줄 = []
+    for 이름, 금 in 항목들[:범례수]:
+        비 = 금 / 총 * 100 if 총 else 0
+        보일 = 이름표.get(이름, 이름)
+        짧 = 보일.split(" · ")[0].split("_")[0]
+        줄.append(f'<div class="dl" title="{esc(보일)} {돈(금)}">'
+                 f'<span class="dot2" style="background:{색맵.get(이름, 회색)}"></span>'
+                 f'<span class="dln">{esc(짧)}</span>'
+                 f'<span class="dlv tnum">{짧은돈(금).replace("약 ", "")}</span>'
+                 f'<span class="dlp tnum">{비:.1f}%</span></div>')
+    남은 = len(항목들) - 범례수
+    if 남은 > 0:
+        나머지 = sum(금 for _, 금 in 항목들[범례수:])
+        줄.append(f'<div class="dl more-line"><span class="dot2" style="background:{회색}"></span>'
+                 f'<span class="dln">그 밖 {남은}개</span>'
+                 f'<span class="dlv tnum">{짧은돈(나머지).replace("약 ", "")}</span>'
+                 f'<span class="dlp tnum">{나머지/총*100 if 총 else 0:.1f}%</span></div>')
+
+    return f"""<div class="dwrap">
+  <div class="donut">
+    <svg viewBox="0 0 160 160" role="img" aria-label="{esc(가운데)} 비중">
+      <circle cx="80" cy="80" r="{r}" fill="none" stroke="#EDF1F5" stroke-width="{두께}"/>
+      {''.join(조각)}
+      {''.join(글자)}
+    </svg>
+    <div class="mid"><div class="t">{가운데}</div><div class="n tnum">{짧은돈(총)}</div></div>
+  </div>
+  <div class="dleg">{''.join(줄)}</div>
 </div>"""
 
 
@@ -1856,7 +1955,7 @@ def 차트_월별(A, 색맵, 이번):
     <div class="sum" style="color:{색}">{막대금액(합)}</div>
     <div class="stk" style="height:{합/눈금*100:.2f}%">{''.join(조각)}</div>
   </div>
-  <div class="mon"><span class="yy">{esc(월[:4])}.</span>{int(월[5:])}월</div>
+  <div class="mon"><span class="yy">’{esc(월[2:4])}</span>{esc(월[5:7])}</div>
 </div>""")
 
     범례 = "".join(
@@ -2267,6 +2366,8 @@ def 구역_자산(자산, 종목=None, 뉴스=None, 재무=None):
         최대 = 속한[0]["금액"] if 속한 else 1
         속단계 = 농담(len(속한), "파랑")
         속색 = {x["세부항목"] + x["기관"]: 속단계[i] for i, x in enumerate(속한)}
+        속이름 = {x["세부항목"] + x["기관"]:
+                (x["세부항목"] + (" · " + x["기관"] if x["기관"] else "")) for x in 속한}
 
         조각 = []
         for i, x in enumerate(속한):
@@ -2290,7 +2391,7 @@ def 구역_자산(자산, 종목=None, 뉴스=None, 재무=None):
 
         속도넛들.append(
             f'<div class="subdonut" data-for="{묶음번호}" hidden>'
-            f'{도넛([(x["세부항목"] + x["기관"], x["금액"]) for x in 속한], 속색, 금, esc(이름))}'
+            f'{도넛([(x["세부항목"] + x["기관"], x["금액"]) for x in 속한], 속색, 금, esc(이름), 6, 속이름)}'
             f'</div>')
         항목줄 = "".join(조각)
         묶음.append(f"""<div class="row" data-acc data-donut="{묶음번호}">
@@ -2889,10 +2990,22 @@ JS = """
 
     몸.hidden = !펼침;
     r.classList.toggle('open', 펼침);
+
+    // 유형을 접을 때는 그 안에서 펼쳐 둔 항목도 같이 접는다.
+    // 안 접으면 '열림' 표시가 남아 총자산 도넛이 작은 채로 굳는다.
+    if (!펼침 && r.dataset.donut !== undefined) {
+      몸.querySelectorAll('.row[data-acc].open').forEach(function (o) {
+        o.classList.remove('open');
+        var m = o.nextElementSibling;
+        if (m && m.classList.contains('acc-body')) m.hidden = true;
+      });
+    }
+
     var 카드 = r.closest('.card');
     if (!카드) return;
-    카드.classList.toggle('focus', !!카드.querySelector('.row[data-acc].open'));
+    // 큰 도넛을 물리는 기준은 '유형이 열려 있는가' 하나다
     var 열린 = 카드.querySelector('.row[data-acc][data-donut].open');
+    카드.classList.toggle('focus', !!열린);
     카드.querySelectorAll('.subdonut').forEach(function (d) {
       d.hidden = !(열린 && d.dataset.for === 열린.dataset.donut);
     });
