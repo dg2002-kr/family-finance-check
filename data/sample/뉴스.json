@@ -1,13 +1,20 @@
 {
- "받은때": "2026-09-23 14:49",
+ "받은때": "2026-09-23 14:57",
  "종목": {
   "삼성전자": [
    {
     "제목": "추석 앞두고 최신 삼성 냉장고 ‘먹통사태’…삼성전자 “긴급 복구 중”",
-    "출처": "KBS 뉴스",
+    "출처": "v.daum.net",
     "날짜": "2026-09-23",
-    "링크": "https://news.google.com/rss/articles/CBMiW0FVX3lxTE5IUUIzWDAxS19MTmZvUUpZQ2dobTdyR2gxSDFRT3F4VGdNeS00Z3A1VnlSTzU2U0hJWGFiNC1oOUc4UlE0a1pJTVVBS3cxRGtfWkFwQnhneGYxSkk?oc=5",
+    "링크": "https://news.google.com/rss/articles/CBMiT0FVX3lxTFBNbVRPUGIwdE1ucTRkbEgwQlI5bGJ4N3ZIWlFwLWpPTlJTRzZOMkxWQ1BSYUF5QUQxejVieERrWDFYMXB5dXFrTTg3OGhaVjA?oc=5",
     "키워드": "긴급 복구"
+   },
+   {
+    "제목": "“추석 음식 다 상하네” 발 동동…삼성 냉장고 ‘먹통’ 사태 왜?",
+    "출처": "중앙일보",
+    "날짜": "2026-09-23",
+    "링크": "https://news.google.com/rss/articles/CBMiVkFVX3lxTE90cVJ6Tl80WDNISm50UUdadnpLeXdKeFQtNHY3M2xEMXl4Vjh2S0JSdVJPTlRQUWJQdXB0dzJJZG9OSHpBa0pxeWpFZFJsemNxMlNGckRB?oc=5",
+    "키워드": "사태 왜?"
    },
    {
     "제목": "“삼성전자 목표주가 63만원”…30만선 회복 앞두고 증권가 전망 보니",
@@ -33,11 +40,11 @@
     "키워드": "가장 비싼"
    },
    {
-    "제목": "[DM왔어요] \"술 때문에 SK하이닉스를\"…신입사원 해고, 무슨 일? 外",
-    "출처": "v.daum.net",
+    "제목": "술 때문에 억대 성과급 놓쳤다…SK하이닉스 신입 4명 해고된 이유",
+    "출처": "서울경제",
     "날짜": "2026-09-22",
-    "링크": "https://news.google.com/rss/articles/CBMiT0FVX3lxTFBZSGxDLXZQd2ExdHJoVkp2M2UzUU1tZWRfX1R3bkdDaEp2VXlWSTg0d19nYUpBY1IwdzdTWnpZanJ1Y3dVR200RXNsalo3WDg?oc=5",
-    "키워드": "신입사원 해고"
+    "링크": "https://news.google.com/rss/articles/CBMiUkFVX3lxTE54VktPMGZteXllV2NVSUdGUFFoUnlRSmVtbERRdENaUlJmSjE2Nm1oNlNGT091aVExTXBoZ056cWkwTHktbjJEbkdYNHFNWGV2R1HSAVNBVV95cUxQVTdsamxNWGlqVzB6bUpvYlRYZ3ZvTlZjWkZTZW52UjlYQzctNmJSVUF2X3dqZERvdDRZQVItZXlZSW5ZcUo5eUMwUE5uWk83a0Rydw?oc=5",
+    "키워드": "해고된 이유"
    },
    {
     "제목": "[사건현장] SK하이닉스 신입사원 연수 중 4명 해고…무슨 일?",
@@ -45,16 +52,23 @@
     "날짜": "2026-09-23",
     "링크": "https://news.google.com/rss/articles/CBMiZ0FVX3lxTFBrU0VXU1p4OHVRSTl1SkYza1NDRFcweXJ4d082QzJhNXJNSzVzRkhzYU56ZzVoY0JOMVNNVXlRUmN4ME1VWi1aNHdUelVOdzlRZjFjRnluUU16OHhHdm1DNkFVbHNxN2c?oc=5",
     "키워드": "무슨 일?"
+   },
+   {
+    "제목": "‘SK하이닉스 ADR, 이 정도일 줄’ 프리미엄 무려 40% 육박…3배 레버리지 ‘속슬’에도 편입[투자360]",
+    "출처": "헤럴드경제",
+    "날짜": "2026-09-23",
+    "링크": "https://news.google.com/rss/articles/CBMiVkFVX3lxTE1RTkdUMVlERjVQV2VXWm5YV1pDYl9vMUlXNzBRb1UtakVPbHFsN1JzZUQzUkVYUS1qWDJNYVphSGMyN2JPWlJhVmswMVRZOEE0c1lsZ2dR?oc=5",
+    "키워드": "SK하이닉스 ADR"
+   },
+   {
+    "제목": "‘서학개미 최애’ SOXL에도 SK하닉 담겼다…美 ETF 줄줄이 편입",
+    "출처": "마켓인",
+    "날짜": "2026-09-22",
+    "링크": "https://news.google.com/rss/articles/CBMic0FVX3lxTE9Od18yUUF6OF9xSWhHNlkyT2xIR242RU5HVl8zN1k3elhSenB3YTZDTjVjR2EzT1pYZDV2RkN1anJLQ2hJRmxwaGYyeFp1MENra0N6ODRZRVc4dFlSNVBOa0xDNUx3dm5OeUViVTl0SVlLVlU?oc=5",
+    "키워드": "줄줄이 편입"
    }
   ],
   "NAVER": [
-   {
-    "제목": "NAVER(네이버) 주가 20만원선 하회…연휴 이후 흐름도 주목",
-    "출처": "cbci.co.kr",
-    "날짜": "2026-09-23",
-    "링크": "https://news.google.com/rss/articles/CBMiaEFVX3lxTE9jeUhXenJfYnpvaEVvZFA3UWk3eWJkRFJOYUpfWWpvaW9hTXVaMHRaQWR6Z0VXdFJRTjRvWDNVNVdUVThEOVNzREJPZnBMZFhERDNwb0EtMlVEbDNmT0w1SFR3NUR2MFA1?oc=5",
-    "키워드": "흐름도 주목"
-   },
    {
     "제목": "[똑똑한 사람되기] 이재명 잘못인가요? 조희대 잘못일까요?",
     "출처": "네이버 프리미엄콘텐츠",
@@ -63,11 +77,39 @@
     "키워드": "조희대 잘못일까요?"
    },
    {
+    "제목": "NAVER(네이버) 주가 20만원선 하회…연휴 이후 흐름도 주목",
+    "출처": "CBC뉴스",
+    "날짜": "2026-09-23",
+    "링크": "https://news.google.com/rss/articles/CBMiZ0FVX3lxTFBDZ001WjZrcS1HU04tM2NkWHFYY21HcW1yaEJfOVlOLU1TV1lnM0J6cDZYdE9TaVV5NXQ4MDhZOHl4WThXYkNXMkpvaFlvYzBReEpNRTRyOEhfVDI4a2wwYkNyaWFmaU0?oc=5",
+    "키워드": "흐름도 주목"
+   },
+   {
     "제목": "Kiwoom Securities, Naver Pay Partner to Expand Access to Unlisted Stock Trading",
     "출처": "알파경제",
     "날짜": "2026-09-22",
     "링크": "https://news.google.com/rss/articles/CBMibkFVX3lxTE5zWVdTdXViY3NZWU1DbVA2MmVGQTJGMnFjVFdxdXgyeTZ5Z05MV0ZnM0JwOERoQjhLS3JJNWx3QWh0Ymt4X3VpYUhqalZfLVZQZ2FTSVJqTG5Md3EyMl8wM0JoaEt6MHZ5MzhXZEtn?oc=5",
     "키워드": "Kiwoom Securit"
+   },
+   {
+    "제목": "충북교육청 환경교육센터와우, 자투리 목재로 만드는 일상 속 환경 실천 : 네이버 블로그",
+    "출처": "Naver Blog",
+    "날짜": "2026-09-23",
+    "링크": "https://news.google.com/rss/articles/CBMijwFBVV95cUxQQUdXN2JiVkI3dlc2NGZkbE15RElZV21sSmpqT1ZPQUdXV0ZXZXFPVmJMUFJGLUFiRmZfX3Z4R2N3cmk3d3lhblVSREFsb0xRWW1sRHVnZ21pUFZ3V1pnTlVPbGNMMllyemZpN0FRb1o5b2ZnQmMxdVJRNDhPZnA5RktLd25yVzljZW5LdE5aMA?oc=5",
+    "키워드": "충북교육청 환경교육센터와우"
+   },
+   {
+    "제목": "[윤건영 충북교육감 추석 인사] 풍요롭고 넉넉한 한가위 되세요 : 네이버 블로그",
+    "출처": "Naver Blog",
+    "날짜": "2026-09-22",
+    "링크": "https://news.google.com/rss/articles/CBMijwFBVV95cUxPck9HQy1HMzJOdnNVY1N0MXdlQmQ4TFBHSWxEVzRGUXNvRWFhVVJ3RjhHRnVwNXA4T1F1bUtNdzRDV2x5QVQ2ZVdoT2x0WWpidE9EeWRIQkpFaU9FNXVKWURlOFBsbElRVUtkU0ZsMVJNSFpIT0FtUURzMUxkUWtDcHdtRkRjVnBpcnJUVlVPNA?oc=5",
+    "키워드": "네이버 블로그"
+   },
+   {
+    "제목": "\"차세대 공학 인재와 접점 확대\"...페라리코리아, 서울대 산학협력공학인재지원센터와 업무협약 체결...",
+    "출처": "Naver Blog",
+    "날짜": "2026-09-23",
+    "링크": "https://news.google.com/rss/articles/CBMimAFBVV95cUxQaUVITEs2eURicjYxeHB1SjEzUGZwUUttMGgxTzgtWVpQRHJvNFZBbkZfNllndVVZSlRsZVREZ3BIVTZicE50OTBKNDlXRG9ibzBTeU1ERmI5Ql8wWEdzWVMzaDlsX2tWQVNfbnpiZko3VzcyWW9EYnZrYXlVVkJnXzBYc0xaTTZXS1EzbzhkbjJKS0NpMDhyUQ?oc=5",
+    "키워드": "접점 확대"
    }
   ],
   "현대차": [
@@ -91,15 +133,36 @@
     "날짜": "2026-09-20",
     "링크": "https://news.google.com/rss/articles/CBMiT0FVX3lxTE1wUjZTWHZVY2NITHZ6SlhYdjNYSnUydkUxQXVHTk9fYWppRTczbWx0RUFkWFVxVjJlSGtEYm9peFcySjBLWEI5QlJEc1gzOWs?oc=5",
     "키워드": "80만원 36만원"
+   },
+   {
+    "제목": "\"78층 구조대 안 와요?\" 주가 반토막 현대차, 증권가 전망도 뚝뚝 - 머니투데이",
+    "출처": "mt.co.kr",
+    "날짜": "2026-09-21",
+    "링크": "https://news.google.com/rss/articles/CBMiaEFVX3lxTE5aSk96RFFVVHlIRnk3QUZtb1RuY1lYMDlmZGI4dllORGZUOGlJak9lU3pEZXQwX3l0cGJ1WUctTWZLWTg0eFd6NWVHak9OUjNkd3VxU1NUOTVERm9oMTd0dUlqdXlWVy1f0gFuQVVfeXFMUDRLSno4dDJUdkJfRnEwWVFpQVpuVTRBV0xoWGxUQ0I2cXZrSlJYLTJUN3pMYXlxekJsUFRua0lCR2RyQlBQeHR3R1FDSG50WlpLU1dIa3FLamZvRkNLM01zaS1nQ01xM2FCQTFha0E?oc=5",
+    "키워드": "반토막 현대차"
+   },
+   {
+    "제목": "'로봇 프리미엄' 사라진 현대차, '반등의 시간' 언제 올까",
+    "출처": "한국경제",
+    "날짜": "2026-09-21",
+    "링크": "https://news.google.com/rss/articles/CBMiWkFVX3lxTE5YdVRONmxkVHdWUGcwMnZvdUVOVk1LdmYxaHFVNG1yV3lCNko1UWE3WldpVDRlUm5IeS0wYmcyZTFJQS1KOXJOWE9rV0NEeDR0ODEzVTdHaXdiZw?oc=5",
+    "키워드": "사라진 현대차"
+   },
+   {
+    "제목": "현대차 공들인 인도 시장에도 中 기술의 ‘우회 침투’ 변수로",
+    "출처": "IT조선",
+    "날짜": "2026-09-22",
+    "링크": "https://news.google.com/rss/articles/CBMicEFVX3lxTE8tbXFZa21wcFdVMElMTHgxVlpaMEloYVRvSmpqdzZUV3BVaTBrcWVEemVSVEZIVkpETUJKSFVmYTdGVmZkbmFfd1FQaHZUenV6VWhTS2pOeWp3V09CWU1oTUpBZUNIYUdPQVdFX3BVTGLSAXRBVV95cUxPYUxTUjJmc0U5NFVsYmhVd0ZiVVNmV25ySWxHODR1TEpBaEhnZ0EtZG5DTGQ2VFhUdzlKeGF5WmJUakJZcmRILXBTZlZSazZ5RWVlcE5EdHhRa2laS0RuODZaQkpOYkRJLWFxa003Rmg2Qi11Xw?oc=5",
+    "키워드": "침투 변수로"
    }
   ],
   "카카오": [
    {
-    "제목": "(9/21 ~ 소진 시까지) 카카오페이 VP 충전 10% 할인 이벤트",
-    "출처": "VALORANT",
-    "날짜": "2026-09-20",
-    "링크": "https://news.google.com/rss/articles/CBMiigFBVV95cUxNR1VXOHNMeWd1UmMxbUZCUllMU0hwMFBOdXU0U1FMZXV3NFZTWTBxdGE1WndXc3g3UWRtMmxWT1NrV0FDWkFfR0pSYUZjSWUyZGlxaFFlVnBnZmpIYjdSTXJWYmxuVGxQYWhyZ2IyUk1NUTMxczJ2X2FZcU5DOElwVVRFYm9kTVZwTVE?oc=5",
-    "키워드": "할인 이벤트"
+    "제목": "카카오 인적분할 첫 관문 넘었다⋯카카오인베 합병 반대 2% 그쳐",
+    "출처": "브릿지경제",
+    "날짜": "2026-09-22",
+    "링크": "https://news.google.com/rss/articles/CBMiWkFVX3lxTE5CYUE1aG9HaE52Uk5oeDNQNUFwYU9JOUhIRF9DanVyajY1VUpNYk1samY4VGRxYXFMRmhGZEhiWUlMRHlfQUZhSXUxMUttNEh3TVFmLUZDN1FqQQ?oc=5",
+    "키워드": "2% 그쳐"
    },
    {
     "제목": "카카오인베 합병 반대 2%대…카카오, 인적분할 첫 관문 넘어",
@@ -114,6 +177,27 @@
     "날짜": "2026-09-22",
     "링크": "https://news.google.com/rss/articles/CBMiZ0FVX3lxTFBTT2ZXVWNCckRqUHNXc29TeExTZkVuazZtZlhVZVkzZF9RN2FmUmg1Y0xucDlqYkJjMURIXzN6Z2k5OXFRam9zQVF5VUdaMHcxX3BLOG5qak9YaU9IZW1RMFdaTDVRR03SAWxBVV95cUxPeHhSYXZQU0VFWkZPZEpmRGx4TDk2d29SNjlhTFJxY2swUV9XT1JDZE9UX2tFbDNfN3ptd3o4dDMzY24zRVVQZDhZTWIzcEIwR1hhelBDYVhmUURwNHBkSnVYbkllMG0yS2hYWVA?oc=5",
     "키워드": "인적분할 순풍"
+   },
+   {
+    "제목": "[속보] 檢, ‘SM 주가조작 의혹’ 카카오 김범수에 2심서 징역 15년 구형 - 조선비즈",
+    "출처": "Chosunbiz",
+    "날짜": "2026-09-23",
+    "링크": "https://news.google.com/rss/articles/CBMigwFBVV95cUxPTHd0M01GLVE5VGt0REcwenoxamY0d0hGZS1yYWZTWUkxd19rZU9abzlNOGIwdHg4X0NYekZsRWJNV1hsOG52ZFFaZHI4UTNYbkxWRnU5a0MyenRsMmgtV1dKSG4zNWpsR0pMZzBFeFhKUDBMQnFDQ0RkajA1TXRvN01PMNIBlwFBVV95cUxPN3lwblZCMVlwQXVpYkRqSlRncGtxLXRFUnlKMUlkVk5YRnV5T1JIMWpXTVlxVzlqV3BDVVpRQ19QbG5pUm1wX1l4bVUyV3p4dGtsVWZLTDh4dGJhdllqZXZaaU1PdkdXRlNpR2k2TWdlMUZRRHBCalBQN1doWmhZb2lTRFlHdUhCbGYzaDNNczZzaERfV2xV?oc=5",
+    "키워드": "[속보] 檢, "
+   },
+   {
+    "제목": "검찰, 카카오 김범수 'SM 시세조종 혐의' 2심 징역 15년 구형",
+    "출처": "연합인포맥스",
+    "날짜": "2026-09-23",
+    "링크": "https://news.google.com/rss/articles/CBMicEFVX3lxTE1HWG5LODdqQVZjNXVhc3c0VS0wQjVIUks3SVpJRHQ2azdiR3hYOVVadHl6akpmWUw2R1ZQUHJ0UGpEWHJBbHYzN3dudzhOTEdtSkRsdm5ZRDdub1B5S1FzRUhiX3FLR2ptd2RaMURfM1PSAXRBVV95cUxONUdMWmtrMlBPTVBwWWl5N0JlYm9VaFlhODZQTzRpTmVVNWd0dzhXSEZNRTI4QXNmRllNX1gwU1dSTEppS3Y2NjdNaC14bUJxOTlFalVIU3F1clNBU216TVZYZXVlRHVqcHotU0dUempNUzhPYQ?oc=5",
+    "키워드": "검찰"
+   },
+   {
+    "제목": "'SM주가조작' 카카오 김범수 2심서 징역 15년 구형…\"무죄 파기\"",
+    "출처": "v.daum.net",
+    "날짜": "2026-09-23",
+    "링크": "https://news.google.com/rss/articles/CBMiT0FVX3lxTFBaOXFfYTdZbVEtd1FJZEVMT2ZERUlfWGR1cDNjWlA3TGE3djBtSlA4Y1FJLV8wWUtjQTBvYkhXaFpmT1I3bVVCOXZlcEw4OU0?oc=5",
+    "키워드": "무죄 파기"
    }
   ],
   "TIGER 미국S&P500": [
@@ -132,24 +216,24 @@
     "키워드": "TIGER 미국S&P500"
    },
    {
-    "제목": "미래에셋 ‘TIGER 미국S&P500 ETF’, 하반기 개인 순매수 1위",
-    "출처": "intn.co.kr",
-    "날짜": "2026-09-16",
-    "링크": "https://news.google.com/rss/articles/CBMiakFVX3lxTE5IalVrM1Bkci1WMjlxbllUNzl0WjF6dWRFREU1MGlRVmh5Z3l1VjBhTk11eGYzRFUzeUZCWmFManVHWVNQanhQSXZMbjJMaDBWZ0xxUXZfV1RYOVhmRUxtRjRMSWdVXzhPVmc?oc=5",
-    "키워드": "미국S&P500 ETF"
+    "제목": "미래에셋, 'TIGER 미국S&P500 ETF' 하반기 개인 순매수 1위",
+    "출처": "인포스탁데일리",
+    "날짜": "2026-09-15",
+    "링크": "https://news.google.com/rss/articles/CBMidkFVX3lxTE9ZdXk4LVROX1VaSThIUmJfN0JBeXczUW5lVmNTMnJrM2dxV1JQRDl3YUhMLVgtWGdpVmhkTmhlT21RVTJrUmd0VlRDYmJXczVIV0h1RTFSX2RjYUtoTnlrVnNZYS1PT0tUd2YzclBPclFNTHFGcGc?oc=5",
+    "키워드": "미래에셋"
+   },
+   {
+    "제목": "미래에셋자산운용, ‘TIGER 미국S&P500 ETF’ 개인 순매수 1위 기록",
+    "출처": "백세시대",
+    "날짜": "2026-09-15",
+    "링크": "https://news.google.com/rss/articles/CBMia0FVX3lxTE1mTVFobkJDLXk1bmhKTGpBLVo1Zkc2MXZoMXhtLUl2QmlqR2VuOEItSUxxNU13VUdNZUxWN3EyQlNOSTBjS2RrU2U0UXUyaElodzc1bmlsd2RyOXlRcDZVZ2FtVXgwcUhFV2FN?oc=5",
+    "키워드": "미래에셋자산운용"
    }
   ],
   "TIGER 미국나스닥100": [
    {
-    "제목": "미래에셋, 'TIGER 미국 대표지수 커버드콜 ETF' 2종 순자산 합산 3조원 돌파",
-    "출처": "인포스탁데일리",
-    "날짜": "2026-09-17",
-    "링크": "https://news.google.com/rss/articles/CBMidkFVX3lxTE1KbzZYd3BMTEo3WTBEbE5IQ1ZUX3hZWmdtbE9PeEhxdkRBNHRPOFJIUFZ3SWZJX05SMGV2UnN1SHhqMEJmQ2hBNVlvU2NCek13ZFM1RVdRUi1sZ3ZrWnhEeC01UHVfdklaNjB0d1hMWHUxUkxlY3c?oc=5",
-    "키워드": "미래에셋"
-   },
-   {
     "제목": "미래에셋운용, TIGER 미국나스닥100 ETF 연초 이후 개인순매수 2조원 돌파",
-    "출처": "아시아경제",
+    "출처": "asiae.co.kr",
     "날짜": "2026-09-10",
     "링크": "https://news.google.com/rss/articles/CBMiYEFVX3lxTE8xUS1oR28yMERmMmVDUE5CcDdRX2VWQlZVRDNzLTVacWVTVlktejNWNW1Fc3N0cEhzaXAyd3VsU2hqOVdjZkJiNWJvQ3RfOEtNbHN5eXlNWmJ0aU8yaUFkNg?oc=5",
     "키워드": "미래에셋운용"
@@ -160,6 +244,20 @@
     "날짜": "2026-09-10",
     "링크": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxNelJnanBDYmFwenVxSVVpSmxWaGRBR0pQdXlGQk1KZkVkenJCUzliZUtwNlNnaU8zZUo5TWpqZ0p4Tzd0MTJjREY2RnpROVp3NGlvanYxYlN5LWZ1akphNVBQTDhIbllHU1lhU0hmSC10a0k2LTY4eDNnQkJmREI4MzMtcjZkTU5U?oc=5",
     "키워드": "미래에셋"
+   },
+   {
+    "제목": "TIGER 미국나스닥100 ETF, 개인 순매수 2조원 돌파",
+    "출처": "newspim.com",
+    "날짜": "2026-09-10",
+    "링크": "https://news.google.com/rss/articles/CBMiXEFVX3lxTE1NZGNmMlQ1eDZjeXVib283QnowUUNIaHVpR09ZekstRkphUFZNSkY0Ymp4bDZZWjJteWFMcVZ6VTlOR1BpSXpLRWFyODBkcTlKcmsyVE9UVXFZX3Zl?oc=5",
+    "키워드": "미국나스닥100 ETF"
+   },
+   {
+    "제목": "미래에셋자산운용 'TIGER 나스닥100', 개인 순매수 2조원 돌파",
+    "출처": "서울경제TV",
+    "날짜": "2026-09-10",
+    "링크": "https://news.google.com/rss/articles/CBMiZEFVX3lxTE1QRmpRWHR2bkxzYWIwSU1lTFRtelc0dER5b3p0MG9LbWloRHZMbElvcUZiMDNYTE9rY19uQS1qOGUtbml6OTV6WWN0NlU1cFJ1ejFDa1ZFOHFwWG1wT192M25uQ1g?oc=5",
+    "키워드": "TIGER 나스닥100"
    }
   ],
   "LG에너지솔루션": [
@@ -178,11 +276,25 @@
     "키워드": "8.4조 투입"
    },
    {
-    "제목": "LG엔솔 폴란드 브로츠와프 공장 확장…대규모 ESS용 배터리 생산 준비",
-    "출처": "더구루",
+    "제목": "고려아연 현대모비스 등 7개사 106분기 연속 흑자…LG에너지솔루션 20분기 연속적자",
+    "출처": "kookje.co.kr",
     "날짜": "2026-09-23",
-    "링크": "https://news.google.com/rss/articles/CBMiY0FVX3lxTE0xbElVdXhfZ1RqdkR5dXpSUkk2bWhmWjhLMm55cmxPNWgtOXFzZDJkUnp0N0hDaFZ6bGF2UXhsd2NkTEs3d0FDOFRCT1NKOGdxd2FsTy0zOGpnSS1wTV8wYzNjSQ?oc=5",
-    "키워드": "생산 준비"
+    "링크": "https://news.google.com/rss/articles/CBMimAFBVV95cUxNVXpLRm0xSW51dkRrRGthdEtnandGY2NWT3lYWlJtNkZ6VkdRSFZaaEZ2OVRVamdkODFPYkNLM05BQ1FTcGJNeVdOekY1VURsNXVwT1FwR0RDM0tQaWVPb1hieGF3eHZuV0hONWkzX1U5enFXMmpRR0hXVmktNjZnbGIxTFVJUTlMYzBFZnR4SmpFZjFtZ3lGUw?oc=5",
+    "키워드": "20분기 연속적자"
+   },
+   {
+    "제목": "'역대 최대' ESS 입찰 개막...LG엔솔, 안방서 설욕 노린다",
+    "출처": "파이낸셜뉴스",
+    "날짜": "2026-09-23",
+    "링크": "https://news.google.com/rss/articles/CBMiWkFVX3lxTFB6ZDU3YVlDX0ptZHotdUxVMEtEbnVqWVdXbWZQazBmZjNBckFERjBnYWZON2lsUG8xTHM0ZWxSdHNNWFhDSFItQTlPT0tlS2o1aE1aQUZtTXRzdw?oc=5",
+    "키워드": "입찰 개막"
+   },
+   {
+    "제목": "[iR52 장영실상] 안전·성능 다 잡은 차세대 배터리 분리막",
+    "출처": "매일경제",
+    "날짜": "2026-09-22",
+    "링크": "https://news.google.com/rss/articles/CBMiTkFVX3lxTE9nVXg3SHppYkRmaWl5NFo4WXdRQW1JN3ZuNjZEOWpWYThzNnJUYnJmemowYVRGckZxRGtRNnl6dDlsTlJTaXdHU3gxMlZ3QQ?oc=5",
+    "키워드": "장영실상 안전"
    }
   ],
   "셀트리온": [
@@ -206,6 +318,20 @@
     "날짜": "2026-09-23",
     "링크": "https://news.google.com/rss/articles/CBMiWkFVX3lxTE03UUUwLUtBTW5MbDU3eEN4WlBfOFhtTlFUUzFaWkI5WGwyZmFaN1pSMGpTbVJTLXJMLUdVRm5pbHI3UGRRM2ZydXVHTENtN0h1S25MaGFacVllQdIBVEFVX3lxTE1KdDBuUUEyZGVnZFFHYk9MU3lBN3l1ZmVHZHJCdzVCX3BXU2lEX3g0NXA1TDFyN3dfdTVuaU11LTgzTHZJTk1raTJTazJrcUFOSmNHdg?oc=5",
     "키워드": "시선은 실적"
+   },
+   {
+    "제목": "[K-바이오 일본 공략기②]같은 일본, 다른 성공 공식…셀트리온 항암제도 ‘1위’",
+    "출처": "팜이데일리",
+    "날짜": "2026-09-20",
+    "링크": "https://news.google.com/rss/articles/CBMibkFVX3lxTE1JNXVRUVQ3NTZMWnpzTFVXQ0h5WGd1SnM5YUdJckhpVWYzX20zejBwUGJyQWlxTzZhZ0NCQmpnMG5LWHE1Tm5hejNZSkNtTW5NdzB3bVJjbndoRFBubkZqVEpobUtjUmZOSVJjOW1R?oc=5",
+    "키워드": "같은 일본"
+   },
+   {
+    "제목": "특허 풀리는 '대어' 잇따라 겨냥⋯셀트리온, 바이오시밀러 세대교체 속도",
+    "출처": "아이뉴스24",
+    "날짜": "2026-09-22",
+    "링크": "https://news.google.com/rss/articles/CBMiS0FVX3lxTE45RUw3YXRlTXVJdXpITGxVVFlQcE0xdXpYaExja2lIX3NoOUFnYTNjTnJscFVfNUVlbnA4cjRjTnAyb2JFTzloNXI0NA?oc=5",
+    "키워드": "잇따라 겨냥⋯셀트리온"
    }
   ]
  }

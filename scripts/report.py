@@ -16,6 +16,8 @@ import json
 import colorsys
 import math
 import re
+import struct
+import zlib
 import statistics
 import sys
 from collections import defaultdict
@@ -215,6 +217,31 @@ body {
 .hval { font-size: 13.5px; font-weight: 800; }
 .hpl { font-size: 11.5px; font-weight: 700; margin-top: 1px; }
 .hnote { font-size: 11px; color: var(--ink3); margin-top: 9px; line-height: 1.5; }
+
+/* 오늘의 소식 — 키워드 단추, 누르면 제목과 원문 링크 */
+.news { margin: 2px 0 10px; padding: 9px 0 0; border-top: 1px dotted var(--line); }
+.nlabel { font-size: 10.5px; color: var(--ink3); font-weight: 700; margin-bottom: 6px; }
+.nchips { display: flex; flex-wrap: wrap; gap: 5px; }
+.nchip {
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink2);
+  font-family: inherit; font-size: 11.5px; font-weight: 700; cursor: pointer;
+  padding: 4px 10px; border-radius: 999px; white-space: nowrap;
+  transition: background .13s, border-color .13s, color .13s;
+}
+.nchip:hover { border-color: var(--ink3); color: var(--ink); }
+.nchip[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
+.nbox {
+  margin-top: 8px; padding: 10px 12px; border-radius: var(--r-sm);
+  background: #F3F6F9; border-left: 3px solid var(--ink3);
+}
+.nbox[hidden] { display: none; }
+.ntitle { font-size: 12.5px; font-weight: 700; line-height: 1.5; word-break: keep-all; }
+.nmeta { font-size: 11px; color: var(--ink3); margin-top: 3px; }
+.nlink {
+  display: inline-block; margin-top: 7px; font-size: 11.5px; font-weight: 800;
+  color: var(--brand-deep); text-decoration: none;
+}
+.nlink:hover { text-decoration: underline; }
 .hhead { display: flex; align-items: center; gap: 11px; padding-bottom: 12px; }
 .hh1 { font-size: 15px; font-weight: 800; letter-spacing: -0.02em; }
 .hh2 { font-size: 11.5px; color: var(--ink3); margin-top: 1px; }
@@ -677,6 +704,63 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
   .card, .hero, .stat, .footer { box-shadow: none; border: 1px solid var(--line); }
 }
 """
+
+
+# ============================================================================
+# 홈 화면에 추가했을 때 쓸 아이콘 — 바깥 그림 파일 없이 직접 그린다
+# ============================================================================
+def _png(폭, 높이, 점찍기):
+    """아주 단순한 PNG 만들기. 라이브러리 없이 zlib 만 쓴다."""
+    줄 = bytearray()
+    for y in range(높이):
+        줄.append(0)                       # 필터 없음
+        for x in range(폭):
+            줄 += bytes(점찍기(x, y))
+    def 덩이(종류, 속):
+        s = 종류 + 속
+        return struct.pack(">I", len(속)) + s + struct.pack(">I", zlib.crc32(s) & 0xFFFFFFFF)
+    return (bytes([0x89]) + b"PNG" + bytes([0x0D, 0x0A, 0x1A, 0x0A])
+            + 덩이(b"IHDR", struct.pack(">IIBBBBB", 폭, 높이, 8, 6, 0, 0, 0))
+            + 덩이(b"IDAT", zlib.compress(bytes(줄), 9))
+            + 덩이(b"IEND", b""))
+
+
+def 아이콘만들기(경로: Path, 크기: int):
+    """진한 바탕에 막대 세 개. 대시보드를 한 글자로 줄인 모양."""
+    바탕 = (15, 22, 32)
+    막대 = [((0, 168, 107), 0.30, 0.62), ((76, 111, 255), 0.47, 0.44), ((255, 166, 26), 0.64, 0.78)]
+    둥근 = 크기 * 0.22
+
+    def 점(x, y):
+        # 모서리를 둥글린 사각형 밖이면 투명
+        for cx, cy in ((둥근, 둥근), (크기 - 둥근, 둥근), (둥근, 크기 - 둥근), (크기 - 둥근, 크기 - 둥근)):
+            if ((x < 둥근 and cx == 둥근) or (x > 크기 - 둥근 and cx != 둥근)) and                ((y < 둥근 and cy == 둥근) or (y > 크기 - 둥근 and cy != 둥근)):
+                if (x - cx) ** 2 + (y - cy) ** 2 > 둥근 ** 2:
+                    return (0, 0, 0, 0)
+        for 색, 왼, 높 in 막대:
+            x0 = 크기 * 왼
+            x1 = x0 + 크기 * 0.13
+            y0 = 크기 * (0.80 - 높 * 0.58)
+            if x0 <= x <= x1 and y0 <= y <= 크기 * 0.80:
+                return 색 + (255,)
+        return 바탕 + (255,)
+
+    경로.write_bytes(_png(크기, 크기, 점))
+
+
+def 앱으로만들기(폴더: Path, 이름="우리집 가계"):
+    """홈 화면에 추가하면 앱처럼 열리도록 아이콘과 설명 파일을 둔다."""
+    폴더.mkdir(parents=True, exist_ok=True)
+    for 크기 in (192, 512):
+        아이콘만들기(폴더 / f"icon-{크기}.png", 크기)
+    (폴더 / "manifest.json").write_text(json.dumps({
+        "name": 이름, "short_name": "가계",
+        "start_url": "./우리집_점검.html", "scope": "./",
+        "display": "standalone", "orientation": "portrait",
+        "background_color": "#F4F6F8", "theme_color": "#0F1620",
+        "icons": [{"src": f"icon-{s}.png", "sizes": f"{s}x{s}", "type": "image/png",
+                   "purpose": "any maskable"} for s in (192, 512)],
+    }, ensure_ascii=False, indent=1), encoding="utf-8")
 
 
 # ============================================================================
@@ -1669,7 +1753,31 @@ def 종목점검(종목들, 평가합, 손익합):
     return 질문
 
 
-def 종목판(종목들, 적힌금액, 기관="", 사람=""):
+def 뉴스칸(종목명, 뉴스):
+    """키워드 단추. 누르면 제목·언론사·날짜가 열리고 원문으로 갈 수 있다.
+    기사 본문은 담지 않는다."""
+    기사들 = (뉴스 or {}).get("종목", {}).get(종목명) or []
+    if not 기사들:
+        return ""
+    단추 = []
+    for i, a in enumerate(기사들[:5]):
+        단추.append(
+            f'<button type="button" class="nchip" data-n="{esc(종목명)}|{i}">'
+            f'{esc(a.get("키워드") or "소식")}</button>')
+    속 = []
+    for i, a in enumerate(기사들[:5]):
+        속.append(
+            f'<div class="nbox" data-n="{esc(종목명)}|{i}" hidden>'
+            f'<div class="ntitle">{esc(a.get("제목", ""))}</div>'
+            f'<div class="nmeta">{esc(a.get("출처", ""))}'
+            f'{" · " + esc(a.get("날짜", "")) if a.get("날짜") else ""}</div>'
+            f'<a class="nlink" href="{esc(a.get("링크", "#"))}" target="_blank" '
+            f'rel="noopener noreferrer">원문 보기 →</a></div>')
+    return (f'<div class="news"><div class="nlabel">📰 오늘의 소식</div>'
+            f'<div class="nchips">{"".join(단추)}</div>{"".join(속)}</div>')
+
+
+def 종목판(종목들, 적힌금액, 기관="", 사람="", 뉴스=None):
     """한 항목 안의 종목별 상세."""
     평가합 = sum(s["평가"] for s in 종목들)
     원금합 = sum(s["원금"] for s in 종목들)
@@ -1703,7 +1811,8 @@ def 종목판(종목들, 적힌금액, 기관="", 사람=""):
     <div class="hval tnum">{s["평가"]:,.0f}원</div>
     <div class="hpl tnum" style="color:{c}">{k} {abs(s["손익"]):,.0f}원 ({s["수익률"]:+.1f}%)</div>
   </div>
-</div>""")
+</div>
+{뉴스칸(s["종목명"], 뉴스)}""")
 
     어긋남 = ""
     if 적힌금액 and abs(적힌금액 - 평가합) > max(1000, 적힌금액 * 0.001):
@@ -1803,7 +1912,7 @@ def 자산상세판(x, 분류금액, 총자산):
             f'{f"<div class=hnote>{남은비고}</div>" if 남은비고 else ""}</div>')
 
 
-def 구역_자산(자산, 종목=None):
+def 구역_자산(자산, 종목=None, 뉴스=None):
     """유형별로 묶고 소계를 보여준다. 줄을 누르면 그 안의 항목이 펼쳐진다.
     (자산 관리 앱들이 공통으로 쓰는 방식 — 현금·투자·부동산·대출로 묶고 그룹마다 소계)"""
     if not 자산["항목"]:
@@ -1824,7 +1933,7 @@ def 구역_자산(자산, 종목=None):
         for i, x in enumerate(속한):
             종목들 = (종목 or {}).get((x["사람"], x["기관"], x["세부항목"]))
             안내 = f'<span class="tag">종목 {len(종목들)}개</span>' if 종목들 else ""
-            속 = (종목판(종목들, x["금액"], x["기관"], x["사람"]) if 종목들
+            속 = (종목판(종목들, x["금액"], x["기관"], x["사람"], 뉴스) if 종목들
                  else 자산상세판(x, 금, 총))
             조각.append(
                 f'<div class="row aitem" data-acc>'
@@ -2379,6 +2488,21 @@ JS = """
     if (저장 && document.getElementById(저장)) 탭열기(저장);
   } catch (e) {}
 
+  // ── 오늘의 소식 키워드 ────────────────────────────────────────────────
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('.nchip') : null;
+    if (!b) return;
+    var 묶음 = b.closest('.news');
+    var 켤까 = b.getAttribute('aria-pressed') !== 'true';
+    묶음.querySelectorAll('.nchip').forEach(function (x) { x.setAttribute('aria-pressed', 'false'); });
+    묶음.querySelectorAll('.nbox').forEach(function (x) { x.hidden = true; });
+    if (켤까) {
+      b.setAttribute('aria-pressed', 'true');
+      var 상자 = 묶음.querySelector('.nbox[data-n="' + b.dataset.n.replace(/"/g, '\\"') + '"]');
+      if (상자) 상자.hidden = false;
+    }
+  });
+
   // ── 확인해볼 것 펼치기 ────────────────────────────────────────────────
   document.addEventListener('click', function (e) {
     var h = e.target.closest ? e.target.closest('.flag-head') : null;
@@ -2465,7 +2589,7 @@ JS = """
 
 
 # ============================================================================
-def html만들기(A, 거래들, 입력파일, 자산, 보험, 가족들, 종목, 조언):
+def html만들기(A, 거래들, 입력파일, 자산, 보험, 가족들, 종목, 조언, 뉴스):
     파일수 = len({t["원본파일"].split(":")[0] for t in 거래들})
     중복 = [t for t in 거래들 if t["중복의심"] == "Y"]
     중복금액 = sum(abs(t["금액"]) for t in 중복) // 2
@@ -2503,6 +2627,15 @@ def html만들기(A, 거래들, 입력파일, 자산, 보험, 가족들, 종목,
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light">
+<meta name="theme-color" content="#0F1620">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="우리집 가계">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" href="icon-192.png">
 <title>우리집 가계 점검</title>
 <style>{CSS}</style>
 </head>
@@ -2578,7 +2711,7 @@ def html만들기(A, 거래들, 입력파일, 자산, 보험, 가족들, 종목,
 
   {f'''<h2>자산 현황</h2>
   <p class="lead">총 {돈(자산["총자산"])} · 직접 적어 넣은 자산 {len(자산["항목"])}건 기준입니다.</p>
-  {구역_자산(자산, 종목)}''' if 자산["항목"] else ""}
+  {구역_자산(자산, 종목, 뉴스)}''' if 자산["항목"] else ""}
 
   {f'''<h2>보험 점검</h2>
   <p class="lead">가족이 어떤 보장을 얼마나 가지고 있는지, 누가 비어 있는지 한 표에 모았습니다.</p>
@@ -2638,6 +2771,14 @@ def main():
     보험 = 보험집계(표읽기(자료 / "보험.csv"))
     종목 = 종목집계(표읽기(자료 / "보유종목.csv"))
 
+    뉴스 = None
+    뉴스파일 = 자료 / "뉴스.json"
+    if 뉴스파일.exists():
+        try:
+            뉴스 = json.loads(뉴스파일.read_text(encoding="utf-8"))
+        except Exception:
+            뉴스 = None
+
     조언 = None
     조언파일 = Path(args.ai)
     if 조언파일.exists():
@@ -2651,7 +2792,8 @@ def main():
 
     출력 = Path(args.output)
     출력.parent.mkdir(parents=True, exist_ok=True)
-    출력.write_text(html만들기(A, 거래들, 입력.name, 자산, 보험, 가족들, 종목, 조언), encoding="utf-8")
+    출력.write_text(html만들기(A, 거래들, 입력.name, 자산, 보험, 가족들, 종목, 조언, 뉴스), encoding="utf-8")
+    앱으로만들기(출력.parent)
 
     print(f"기간 {A['달들'][0]} ~ {A['달들'][-1]} / 거래 {len(거래들)}건")
     print(f"가구 총지출 {A['총지출']:,}원 / 구성원 {len(A['사람들'])}명")

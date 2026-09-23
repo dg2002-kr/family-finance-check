@@ -153,6 +153,17 @@ def main():
                 달러, 원 = 돈계산(args.model, 입, 출)
                 print(f"  토큰 입력 {입} / 출력 {출} · 약 {원:.2f}원")
 
+    # 같은 사건을 여러 언론사가 쓰면 키워드가 겹친다. 먼저 나온 것만 남긴다.
+    for 이름, 기사 in 모음.items():
+        본것, 남길것 = set(), []
+        for a in 기사:
+            열쇠 = a["키워드"].replace(" ", "")
+            if 열쇠 in 본것:
+                continue
+            본것.add(열쇠)
+            남길것.append(a)
+        모음[이름] = 남길것
+
     출력 = Path(args.out) if args.out else 자료 / "뉴스.json"
     출력.parent.mkdir(parents=True, exist_ok=True)
     출력.write_text(json.dumps(
