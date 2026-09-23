@@ -100,6 +100,41 @@ body {
 .tab-btn[aria-selected="true"] .n { background: var(--up); }
 .panel[hidden] { display: none; }
 
+/* ---------- 사람 고르기 (보험) ---------- */
+.subtabs {
+  display: flex; gap: 6px; overflow-x: auto; padding: 2px 0 13px;
+  -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.subtabs::-webkit-scrollbar { display: none; }
+.sub-btn {
+  flex: none; cursor: pointer; white-space: nowrap;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink2);
+  font-family: inherit; font-size: 13px; font-weight: 700; letter-spacing: -0.02em;
+  padding: 8px 14px; border-radius: 999px;
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: background .13s, color .13s, border-color .13s;
+}
+.sub-btn:hover { border-color: var(--ink3); }
+.sub-btn[aria-selected="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
+.sub-btn .c { font-size: 11px; opacity: .7; font-weight: 700; }
+.sub-btn .c.none { color: var(--up); opacity: 1; }
+.sub-btn[aria-selected="true"] .c.none { color: #FF9A9C; }
+.subpanel[hidden] { display: none; }
+
+.pstat {
+  display: flex; gap: 18px; flex-wrap: wrap;
+  padding: 14px 18px; margin-bottom: 11px;
+  background: var(--surface); border-radius: var(--r-md); box-shadow: var(--sh);
+}
+.pstat div { min-width: 0; }
+.pstat .k { font-size: 11.5px; color: var(--ink3); font-weight: 600; }
+.pstat .v {
+  font-size: 17px; font-weight: 800; letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.gapbox { padding: 12px 16px; }
+.gapbox .t { font-size: 12px; color: var(--ink3); font-weight: 700; margin-bottom: 7px; }
+
 /* ---------- 더 보기 ---------- */
 .more[hidden] { display: none; }
 .more-btn {
@@ -1224,9 +1259,102 @@ def 구역_보험(보험, 가족들):
   <div class="rside"><div class="rval tnum" style="font-size:14px">{보험료}</div></div>
 </div>""")
 
-    return f"""<div class="card pad">{접기(줄, 6, "개")}</div>
-<h2 style="margin-top:30px;font-size:15px">가입한 증권 {len(보험["증권"])}건</h2>
-<div class="card pad">{접기(증권줄, 5, "건")}</div>"""
+    전체판 = (f'<div class="card pad">{접기(줄, 6, "개")}</div>'
+             f'<h2 style="margin-top:26px;font-size:15px">가입한 증권 {len(보험["증권"])}건</h2>'
+             f'<div class="card pad">{접기(증권줄, 5, "건")}</div>')
+
+    # ── 사람별 화면 ──────────────────────────────────────────────────
+    버튼 = ['<button class="sub-btn" type="button" data-sub="ins-all" '
+           'aria-selected="true">전체 비교</button>']
+    판들 = [f'<div class="subpanel" id="ins-all">{전체판}</div>']
+
+    for i, 이름 in enumerate(순서):
+        증권들 = [s for s in 보험["증권"] if s["사람"] == 이름]
+        없음 = " none" if not 증권들 else ""
+        버튼.append(f'<button class="sub-btn" type="button" data-sub="ins-{i}" '
+                   f'aria-selected="false">{esc(이름.split("_")[0])}'
+                   f'<span class="c{없음}">{len(증권들)}</span></button>')
+        판들.append(f'<div class="subpanel" id="ins-{i}" hidden>{사람보험판(이름, 증권들, 보험, 순서)}</div>')
+
+    return (f'<div data-subgroup><div class="subtabs">{"".join(버튼)}</div>'
+            f'{"".join(판들)}</div>')
+
+
+def 사람보험판(이름, 증권들, 보험, 순서):
+    """한 사람의 보장과 증권만 모아 보여준다."""
+    if not 증권들:
+        가진사람 = sorted({p for 사람별 in 보험["보장"].values() for p in 사람별})
+        return (f'<div class="note warn"><div class="bar"></div>'
+                f'<p><strong>{esc(이름)} 님 앞으로 등록된 증권이 없습니다.</strong><br>'
+                f'{", ".join(esc(p.split("_")[0]) for p in 가진사람)} 님은 보장을 가지고 있어요. '
+                f'실제로 없는 것인지, 증권을 아직 못 옮겨 적은 것인지 확인해 보세요.</p></div>')
+
+    보험료 = sum(s["월보험료"] for s in 증권들)
+
+    # 이 사람이 가진 보장
+    내보장 = []
+    for 항목, 사람별 in 보험["보장"].items():
+        건들 = 사람별.get(이름)
+        if not 건들:
+            continue
+        금들 = [b["금액"] for b in 건들]
+        무한 = any(g == "무한" for g in 금들)
+        합 = sum(g for g in 금들 if isinstance(g, int))
+        내보장.append((항목, 건들, 무한, 합))
+    내보장.sort(key=lambda x: (not x[2], -x[3]))
+
+    보장줄 = []
+    최대 = max([x[3] for x in 내보장] or [1]) or 1
+    for 항목, 건들, 무한, 합 in 내보장:
+        표기 = "무한" if 무한 else (짧은돈(합).replace("약 ", "") if 합 else "가입")
+        회사 = " · ".join(esc(b["보험사"]) for b in 건들)
+        겹 = ('<span class="tag warn">중복 보상 안 됨</span>'
+              if 항목 in 비례보상담보 and len(건들) > 1 else
+              (f'<span class="tag">{len(건들)}건</span>' if len(건들) > 1 else ""))
+        폭 = 100 if 무한 else (합 / 최대 * 100 if 최대 else 0)
+        보장줄.append(f"""<div class="row static">
+  <div class="rmain">
+    <div class="rtitle"><span class="nm">{esc(항목)}</span>{겹}</div>
+    <div class="rmeta">{회사}</div>
+    <div class="track"><i style="width:{폭:.1f}%;background:var(--brand)"></i></div>
+  </div>
+  <div class="rside"><div class="rval tnum">{표기}</div></div>
+</div>""")
+
+    # 가족 중 누군가는 가졌는데 이 사람에겐 없는 보장
+    공백 = [항목 for 항목, 사람별 in 보험["보장"].items()
+          if 이름 not in 사람별 and 사람별]
+    공백칸 = ""
+    if 공백:
+        칩 = "".join(f'<span class="chip off">{esc(c)}</span>' for c in sorted(공백))
+        공백칸 = (f'<div class="card gapbox" style="margin-top:11px">'
+                 f'<div class="t">가족 중 다른 사람은 가지고 있는데 없는 보장</div>'
+                 f'<div class="chips">{칩}</div></div>')
+
+    증권줄 = []
+    for s in sorted(증권들, key=lambda x: -x["월보험료"]):
+        료 = 돈(s["월보험료"]) if s["월보험료"] else "출금 기록 없음"
+        세대 = ""
+        if any(항.startswith("실손") for 항, _ in s["보장"]):
+            g = 실손세대(s["계약일"])
+            세대 = f'<span class="tag">{g}</span>' if g else ""
+        증권줄.append(f"""<div class="row static">
+  <div class="rmain"><div class="rtitle"><span class="nm">{esc(s["보험사"])} {esc(s["상품명"])}</span>{세대}</div>
+    <div class="rmeta">{esc(s["계약일"])} ~ {esc(s["만기일"])} · 보장 {len(s["보장"])}개
+      {" · " + esc(s["비고"]) if s["비고"] else ""}</div></div>
+  <div class="rside"><div class="rval tnum" style="font-size:13.5px">{료}</div></div>
+</div>""")
+
+    return f"""<div class="pstat">
+  <div><div class="k">월 보험료</div><div class="v tnum">{돈(보험료)}</div></div>
+  <div><div class="k">1년이면</div><div class="v tnum">{짧은돈(보험료*12)}</div></div>
+  <div><div class="k">증권</div><div class="v tnum">{len(증권들)}건</div></div>
+  <div><div class="k">보장 항목</div><div class="v tnum">{len(내보장)}개</div></div>
+</div>
+<div class="card pad">{접기(보장줄, 6, "개")}</div>
+{공백칸}
+<h2 style="margin-top:26px;font-size:15px">{esc(이름.split("_")[0])} 님 증권 {len(증권들)}건</h2>
+<div class="card pad">{"".join(증권줄)}</div>"""
 
 
 def 구역_점검(신호들):
@@ -1430,6 +1558,19 @@ JS = """
     var 저장 = sessionStorage.getItem('ff-tab');
     if (저장 && document.getElementById(저장)) 탭열기(저장);
   } catch (e) {}
+
+  // ── 사람 고르기 (보험) ────────────────────────────────────────────────
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('.sub-btn') : null;
+    if (!b) return;
+    var 묶음 = b.closest('[data-subgroup]');
+    묶음.querySelectorAll('.sub-btn').forEach(function (x) {
+      x.setAttribute('aria-selected', String(x === b));
+    });
+    묶음.querySelectorAll('.subpanel').forEach(function (p) {
+      p.hidden = p.id !== b.dataset.sub;
+    });
+  });
 
   // ── 더 보기 / 다른 탭으로 가기 ────────────────────────────────────────
   document.addEventListener('click', function (e) {
