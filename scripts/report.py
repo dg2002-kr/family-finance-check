@@ -75,8 +75,44 @@ body {
 .app { max-width: 940px; margin: 0 auto; }
 .tnum { font-variant-numeric: tabular-nums; }
 
+/* ---------- 탭 ---------- */
+.tabs {
+  position: sticky; top: 0; z-index: 30;
+  display: flex; gap: 4px; padding: 10px 0 12px;
+  background: linear-gradient(var(--bg) 78%, rgba(244,246,248,0));
+  margin-bottom: 4px;
+}
+.tab-btn {
+  flex: 1; border: none; cursor: pointer;
+  background: #E7EBF0; color: var(--ink2);
+  font-family: inherit; font-size: 13.5px; font-weight: 700; letter-spacing: -0.02em;
+  padding: 11px 8px; border-radius: 11px;
+  transition: background .13s, color .13s;
+}
+.tab-btn:hover { background: #DDE3EA; }
+.tab-btn[aria-selected="true"] {
+  background: var(--ink); color: #fff;
+}
+.tab-btn .n {
+  display: inline-block; margin-left: 5px; padding: 1px 6px;
+  border-radius: 999px; background: var(--up); color: #fff; font-size: 11px;
+}
+.tab-btn[aria-selected="true"] .n { background: var(--up); }
+.panel[hidden] { display: none; }
+
+/* ---------- 더 보기 ---------- */
+.more[hidden] { display: none; }
+.more-btn {
+  display: block; width: 100%; border: none; cursor: pointer;
+  background: transparent; color: var(--ink2);
+  font-family: inherit; font-size: 12.5px; font-weight: 700;
+  padding: 12px 8px; border-top: 1px solid var(--line);
+  transition: background .13s;
+}
+.more-btn:hover { background: #F6F8FA; color: var(--brand-deep); }
+
 /* ---------- 머리말 ---------- */
-.top { margin-bottom: 20px; }
+.top { margin-bottom: 14px; }
 .top h1 { font-size: 20px; font-weight: 800; margin: 0; letter-spacing: -0.03em; }
 .top .period { color: var(--ink3); font-size: 13px; margin-top: 3px; }
 
@@ -245,6 +281,11 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
 
 /* ---------- 점검 항목 ---------- */
 .flags { display: grid; gap: 11px; }
+.flags > .more:not([hidden]) { display: grid; gap: 11px; }
+.flags > .more-btn {
+  background: var(--surface); border-radius: var(--r-md);
+  box-shadow: var(--sh); border: none; padding: 14px;
+}
 .flag { background: var(--surface); border-radius: var(--r-md); padding: 17px 19px; box-shadow: var(--sh); }
 .flag .ft { font-weight: 800; font-size: 14.5px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; letter-spacing: -0.02em; }
 .flag .fb { font-size: 13px; color: var(--ink2); margin-top: 6px; }
@@ -340,7 +381,7 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
   .stat .s { font-size: 11.5px; }
   h2 { font-size: 16px; margin-top: 30px; }
   .card { border-radius: var(--r-md); }
-  .row { padding: 13px 14px; gap: 10px; }
+  .row { padding: 11px 13px; gap: 10px; }
   .ava { width: 34px; height: 34px; border-radius: 10px; font-size: 14px; }
   .chev { display: none; }            /* 좁은 화면에서는 이름과 금액에 자리를 준다 */
   .rmeta { font-size: 11.5px; }
@@ -411,6 +452,16 @@ def 머리글자(이름: str) -> str:
     """아바타에 넣을 한 글자. '아빠_김정우' → '아'"""
     s = str(이름).strip()
     return s[0] if s else "?"
+
+
+def 접기(행들, 보일수=5, 단위="개"):
+    """목록이 길면 앞부분만 보이고 나머지는 눌러서 펼친다 (단계적 공개)."""
+    if len(행들) <= 보일수:
+        return "".join(행들)
+    남 = len(행들) - 보일수
+    return ("".join(행들[:보일수]) +
+            f'<div class="more" hidden>{"".join(행들[보일수:])}</div>'
+            f'<button class="more-btn" type="button">나머지 {남}{단위} 더 보기</button>')
 
 
 def 증감칩(차이, 기준=None):
@@ -851,13 +902,13 @@ def 목록_수혜자(A, 색맵):
         추이 = [A["월수혜자"].get((m, 사람), 0) for m in A["달들"]]
         칩 = 증감칩(추이[-1] - 추이[-2], 추이[-2]) if len(추이) >= 2 else ""
         큰것 = sorted(((c, v) for (p, c), v in A["수혜자카테고리"].items() if p == 사람),
-                    key=lambda kv: -kv[1])[:2]
-        설명 = " · ".join(esc(c) for c, _ in 큰것)
+                    key=lambda kv: -kv[1])[:1]
+        설명 = 큰것[0][0] if 큰것 else "-"
         행.append(f"""<div class="row" data-kind="beneficiary" data-key="{esc(사람)}">
   <div class="ava" style="background:{색맵[사람]}">{esc(머리글자(사람))}</div>
   <div class="rmain">
     <div class="rtitle"><span class="nm">{esc(사람)}</span>{칩}</div>
-    <div class="rmeta">월평균 {짧은돈(금//개월)} · 주로 {설명}</div>
+    <div class="rmeta">월 {짧은돈(금//개월)} · {esc(설명)}</div>
     <div class="track"><i style="width:{금/총*100:.1f}%;background:{색맵[사람]}"></i></div>
   </div>
   <div class="rside"><div class="rval tnum">{돈(금)}</div>
@@ -873,6 +924,32 @@ def 목록_수혜자(A, 색맵):
     return f"""<div class="card pad" data-group>{''.join(행)}
   <div class="detail-host" hidden></div>
 </div>{검산}"""
+
+
+def 요약_이번달(A, 이번):
+    """요약 탭에 올리는 이번 달 카테고리 Top. 눌러서 가맹점·거래까지 내려갈 수 있다."""
+    if not 이번:
+        return ""
+    항목 = sorted(((c, v) for (m, c), v in A["월카테고리"].items()
+                 if m == 이번 and c not in ("수입", "이체")), key=lambda kv: -kv[1])
+    if not 항목:
+        return ""
+    총, 최대 = sum(v for _, v in 항목), 항목[0][1]
+    행 = []
+    for c, v in 항목:
+        행.append(f"""<div class="row" data-kind="monthcategory"
+     data-key="{esc(이번)}" data-key2="{esc(c)}">
+  <div class="rmain">
+    <div class="rtitle"><span class="nm">{esc(c)}</span></div>
+    <div class="track"><i style="width:{v/최대*100:.1f}%;background:var(--brand)"></i></div>
+  </div>
+  <div class="rside"><div class="rval tnum">{돈(v)}</div>
+    <div class="rsub">{v/총*100:.1f}%</div></div>
+  <div class="chev"></div>
+</div>""")
+    return f"""<div class="card pad" data-group>{접기(행, 5, "개")}
+  <div class="detail-host" hidden></div>
+</div>"""
 
 
 def 목록_결제자(A):
@@ -942,7 +1019,7 @@ def 구역_카테고리(A):
     {도넛(항목[:6], 색맵, 총)}
     <div class="pad" style="padding:8px 6px">{''.join(행[:6])}</div>
   </div>
-  <div class="pad" style="padding:0 6px 8px;box-shadow:inset 0 1px 0 var(--line)">{''.join(행[6:])}</div>
+  <div class="pad" style="padding:0 6px 0;box-shadow:inset 0 1px 0 var(--line)">{접기(행[6:], 0, "개")}</div>
   <div class="detail-host" hidden></div>
 </div>"""
 
@@ -1028,7 +1105,7 @@ def 목록_고정비(고정비들, 관측개월, 중복구독):
     <div class="rsub">1년 {짧은돈(연합)}</div></div>
 </div>"""
 
-    return f"""{경고}<div class="card pad" data-group>{''.join(행)}{합계행}
+    return f"""{경고}<div class="card pad" data-group>{접기(행, 5, "건")}{합계행}
   <div class="detail-host" hidden></div>
 </div>
 <div class="check">프로그램은 매달 반복되는 결제를 찾아줄 뿐, 그게 필요한 지출인지는 알 수 없습니다.
@@ -1058,7 +1135,7 @@ def 목록_전월대비(이번, 지난, 행들):
   <div class="rside"><div class="rval tnum" style="color:{색};font-size:14px">{esc(비율)}</div></div>
   <div class="chev"></div>
 </div>""")
-    return f"""<div class="card pad" data-group>{''.join(행)}
+    return f"""<div class="card pad" data-group>{접기(행, 5, "개")}
   <div class="detail-host" hidden></div>
 </div>
 <div class="check">늘어난 항목은 빨강 ▲, 줄어든 항목은 초록 ▼ 입니다. 색과 기호를 함께 씁니다.</div>"""
@@ -1147,9 +1224,9 @@ def 구역_보험(보험, 가족들):
   <div class="rside"><div class="rval tnum" style="font-size:14px">{보험료}</div></div>
 </div>""")
 
-    return f"""<div class="card pad">{''.join(줄)}</div>
+    return f"""<div class="card pad">{접기(줄, 6, "개")}</div>
 <h2 style="margin-top:30px;font-size:15px">가입한 증권 {len(보험["증권"])}건</h2>
-<div class="card pad">{''.join(증권줄)}</div>"""
+<div class="card pad">{접기(증권줄, 5, "건")}</div>"""
 
 
 def 구역_점검(신호들):
@@ -1166,7 +1243,7 @@ def 구역_점검(신호들):
   <div class="fq"><span class="q">상담할 때 이렇게 물어보세요</span>{esc(s["질문"])}</div>
   {출처}
 </div>""")
-    return f'<div class="flags">{"".join(카드)}</div>'
+    return f'<div class="flags">{접기(카드, 4, "가지")}</div>'
 
 
 # ============================================================================
@@ -1202,6 +1279,7 @@ JS = """
     member:      ['c', 'm'],
     category:    ['b', 'm'],
     delta:       ['mon', 'm'],
+    monthcategory: ['m'],
     fixed:       ['mon']
   };
   var DIMNAME = { c: '카테고리', m: '가맹점', b: '누구 몫', p: '결제한 사람', mon: '월' };
@@ -1221,6 +1299,9 @@ JS = """
     if (kind === 'category') return TX.filter(function (t) { return t.c === key; });
     if (kind === 'fixed')    return TX.filter(function (t) { return t.m === key && t.p === key2; });
     if (kind === 'month')    return TX.filter(function (t) { return t.d.slice(0, 7) === key; });
+    if (kind === 'monthcategory') return TX.filter(function (t) {
+      return t.d.slice(0, 7) === key && t.c === key2;
+    });
     if (kind === 'monthperson') return TX.filter(function (t) {
       return t.d.slice(0, 7) === key && t.b === key2;
     });
@@ -1292,6 +1373,7 @@ JS = """
     if (kind === 'delta') return esc(key) + ' · ' + MONTHS.prev + ' ~ ' + MONTHS.cur;
     if (kind === 'month') return key + ' 한 달';
     if (kind === 'monthperson') return key + ' · ' + esc(key2) + ' 몫';
+    if (kind === 'monthcategory') return key + ' · ' + esc(key2);
     return esc(key);
   }
 
@@ -1330,6 +1412,38 @@ JS = """
       host.dataset.sig = 표;
       el.classList.add('open');
     });
+  });
+
+  // ── 탭 ────────────────────────────────────────────────────────────────
+  function 탭열기(id) {
+    document.querySelectorAll('.panel').forEach(function (p) { p.hidden = p.id !== id; });
+    document.querySelectorAll('.tab-btn').forEach(function (b) {
+      b.setAttribute('aria-selected', String(b.dataset.tab === id));
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    try { sessionStorage.setItem('ff-tab', id); } catch (e) {}
+  }
+  document.querySelectorAll('.tab-btn').forEach(function (b) {
+    b.addEventListener('click', function () { 탭열기(b.dataset.tab); });
+  });
+  try {
+    var 저장 = sessionStorage.getItem('ff-tab');
+    if (저장 && document.getElementById(저장)) 탭열기(저장);
+  } catch (e) {}
+
+  // ── 더 보기 / 다른 탭으로 가기 ────────────────────────────────────────
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('.more-btn') : null;
+    if (!b) return;
+    if (b.dataset.goto) { 탭열기(b.dataset.goto); return; }
+    var 더 = b.previousElementSibling;
+    if (!더 || !더.classList.contains('more')) return;
+    더.hidden = !더.hidden;
+    b.textContent = 더.hidden ? b.dataset.label : '접기';
+    if (더.hidden && b.dataset.label) b.textContent = b.dataset.label;
+  });
+  document.querySelectorAll('.more-btn').forEach(function (b) {
+    if (!b.dataset.goto) b.dataset.label = b.textContent;
   });
 
   // ── 2단계 이후: 묶음을 누르면 그 안이 또 나뉜다 ──────────────────────
@@ -1399,9 +1513,34 @@ def html만들기(A, 거래들, 입력파일, 자산, 보험, 가족들):
     <div class="period">파일 {파일수}개 · 거래 {len(거래들)}건 · {esc(생성)} 기준</div>
   </div>
 
-  {히어로(A, 이번, 지난)}
-  {통계카드(A, 자산, 고정비월합, 고정비연합, len(중복)//2 + len(중복구독) + 경고수)}
-  {중복안내}
+  <nav class="tabs" role="tablist">
+    <button class="tab-btn" type="button" role="tab" aria-selected="true"  data-tab="p-summary">요약</button>
+    <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="p-spend">소비</button>
+    <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="p-wealth">자산·보험{f'<span class="n">{경고수}</span>' if 경고수 else ''}</button>
+  </nav>
+
+  <section class="panel" id="p-summary" role="tabpanel">
+    {히어로(A, 이번, 지난)}
+    {통계카드(A, 자산, 고정비월합, 고정비연합, len(중복)//2 + len(중복구독) + 경고수)}
+    {중복안내}
+
+    {f'''<h2>먼저 확인해볼 것</h2>
+    <p class="lead">가장 눈에 띄는 것만 추렸습니다. 나머지는 자산·보험 탭에 있어요.</p>
+    {구역_점검([s for s in 점검 if s["급"] == "warn"][:3])}
+    <button class="more-btn" type="button" data-goto="p-wealth"
+      style="background:var(--surface);border-radius:var(--r-md);box-shadow:var(--sh);border:none;margin-top:11px">
+      확인할 것 {len(점검)}가지 전부 보기 →</button>''' if 점검 else ""}
+
+    <h2>이번 달 어디에 썼나</h2>
+    <p class="lead">{esc(이번 or "-")} 기준. 자세한 것은 소비 탭에서 볼 수 있어요.</p>
+    {요약_이번달(A, 이번)}
+  </section>
+
+  <section class="panel" id="p-spend" role="tabpanel" hidden>
+
+  <h2>월별 추이</h2>
+  <p class="lead">막대 한 칸이 한 달이고, 색은 <b>누구 몫이었는지</b>를 나타냅니다.</p>
+  {차트_월별(A, 색맵, 이번)}
 
   <h2>누구를 위해 썼나</h2>
   <p class="lead">돈을 낸 사람이 아니라 <b>그 돈이 쓰인 사람</b> 기준입니다.
@@ -1416,10 +1555,6 @@ def html만들기(A, 거래들, 입력파일, 자산, 보험, 가족들):
   <p class="lead">카테고리별 지출을 큰 것부터 정렬했습니다.</p>
   {구역_카테고리(A)}
 
-  <h2>월별 추이</h2>
-  <p class="lead">막대 한 칸이 한 달이고, 색은 <b>누구 몫이었는지</b>를 나타냅니다.</p>
-  {차트_월별(A, 색맵, 이번)}
-
   <h2>매달 빠져나가는 고정비</h2>
   <p class="lead">매달 빠짐없이 · 비슷한 금액 · 비슷한 날짜에 결제된 것만 골랐습니다.</p>
   {목록_고정비(고정비들, 관측개월, 중복구독)}
@@ -1427,6 +1562,9 @@ def html만들기(A, 거래들, 입력파일, 자산, 보험, 가족들):
   <h2>지난달과 달라진 것</h2>
   <p class="lead">{esc(지난 or "-")} 와 {esc(이번 or "-")} 를 카테고리별로 비교했습니다.</p>
   {목록_전월대비(이번, 지난, 변화)}
+  </section>
+
+  <section class="panel" id="p-wealth" role="tabpanel" hidden>
 
   {f'''<h2>자산 현황</h2>
   <p class="lead">총 {돈(자산["총자산"])} · 직접 적어 넣은 자산 {len(자산["항목"])}건 기준입니다.</p>
@@ -1440,6 +1578,7 @@ def html만들기(A, 거래들, 입력파일, 자산, 보험, 가족들):
   <p class="lead">사실만 짚고, 상담할 때 그대로 물어볼 수 있는 문장을 함께 적었습니다.
   이 도구는 어떤 보험을 들거나 해지하라고 권하지 않습니다.</p>
   {구역_점검(점검)}''' if 점검 else ""}
+  </section>
 
   <div class="footer">
     <span class="warn">이 파일에는 실제 거래 내역이 들어 있습니다.</span>
