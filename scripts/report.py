@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-표준 거래표(out/거래통합.csv)를 읽어 HTML 대시보드 한 장을 만든다.
+표준 거래표(out/거래통합.csv)를 읽어 가계부 앱 같은 대시보드 한 장을 만든다.
 
   python -X utf8 scripts/report.py
   python -X utf8 scripts/report.py --input out/거래통합.csv --output out/우리집_점검.html
 
 외부 라이브러리·CDN·웹폰트를 쓰지 않는다. 인터넷이 끊겨도 열린다.
+표 대신 카드와 목록으로 구성해 휴대폰에서도 가로로 잘리지 않는다.
 """
 import argparse
 import csv
 import datetime as dt
 import html
 import json
+import math
 import statistics
 import sys
 from collections import defaultdict
@@ -23,115 +25,306 @@ from pathlib import Path
 금액편차한도 = 0.10   # 금액이 평균의 ±10% 안에서 움직여야 고정비로 본다
 결제일편차한도 = 3.0  # 결제일이 며칠 이내로 일정해야 한다 (일)
 
+상세개월한도 = 12     # 상세 보기에 담을 최근 개월 수 (파일이 무거워지지 않게)
+
 # ============================================================================
-# 색과 글꼴 — 실습 폴더 CLAUDE.md 팔레트를 따른다
+# 색
+#   실습 폴더 CLAUDE.md 의 문서용 팔레트(크림 배경·진초록) 대신
+#   앱 화면에 맞는 밝은 회색 바탕 + 선명한 초록으로 간다. 사용자 요청에 따른 것.
 # ============================================================================
+구성원색 = ["#00A86B", "#4C6FFF", "#FFA61A", "#FF6B6B", "#8B5CF6", "#00B8D9"]
+카테고리색 = ["#00A86B", "#4C6FFF", "#FFA61A", "#FF6B6B", "#8B5CF6",
+            "#00B8D9", "#F2709C", "#14B8A6", "#FFC53D", "#7C8BA1"]
+회색 = "#C7CDD6"
+
 CSS = """
 :root {
-  --accent: #00462A;
-  --accent-pale: #E8EFEB;
-  --bg-page: #FFFDF1;
-  --bg-card: #FFFFFF;
-  --neutral: #B9B9B9;
-  --border: #E1E4E8;
-  --text-primary: #1A1A1A;
-  --text-secondary: #5F6368;
-  --sub-coral: #F27367;
+  --bg: #F4F6F8;
+  --surface: #FFFFFF;
+  --ink: #0F1620;
+  --ink2: #5C6875;
+  --ink3: #96A0AC;
+  --line: #EDF0F3;
+  --brand: #00A86B;
+  --brand-deep: #00563A;
+  --brand-soft: #E6F7EF;
+  --up: #FF4D4F;
+  --up-soft: #FFECEC;
+  --down: #00A86B;
+  --down-soft: #E6F7EF;
+  --r-lg: 18px;
+  --r-md: 14px;
+  --r-sm: 10px;
+  --sh: 0 1px 2px rgba(15,22,32,.04), 0 6px 20px rgba(15,22,32,.05);
+  --sh-hi: 0 2px 6px rgba(15,22,32,.07), 0 12px 30px rgba(15,22,32,.09);
 }
 * { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
 body {
-  margin: 0; padding: 24px 16px 64px;
-  background: var(--bg-page);
-  color: var(--text-primary);
-  font-family: Pretendard, 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
-  font-size: 15px; line-height: 1.6;
+  margin: 0;
+  padding: 36px 24px 80px;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: Pretendard, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+               'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.01em;
 }
-.wrap { max-width: 980px; margin: 0 auto; }
-h1 { font-size: 26px; font-weight: 700; margin: 0 0 4px; color: var(--accent); }
-h2 {
-  font-size: 19px; font-weight: 700; margin: 40px 0 14px;
-  border-left: 4px solid var(--accent); padding-left: 12px; color: var(--accent);
+.app { max-width: 940px; margin: 0 auto; }
+.tnum { font-variant-numeric: tabular-nums; }
+
+/* ---------- 머리말 ---------- */
+.top { margin-bottom: 20px; }
+.top h1 { font-size: 20px; font-weight: 800; margin: 0; letter-spacing: -0.03em; }
+.top .period { color: var(--ink3); font-size: 13px; margin-top: 3px; }
+
+/* ---------- 히어로 ---------- */
+.hero {
+  background: var(--surface); border-radius: var(--r-lg);
+  padding: 26px 26px 22px; box-shadow: var(--sh); margin-bottom: 14px;
 }
-.sub { color: var(--text-secondary); font-size: 14px; margin-bottom: 28px; }
-
-.callout {
-  background: var(--accent-pale); border-left: 3px solid var(--accent);
-  padding: 14px 16px; border-radius: 4px; margin: 20px 0;
+.hero .k { font-size: 13.5px; color: var(--ink2); font-weight: 600; }
+.hero .v {
+  font-size: 40px; font-weight: 800; letter-spacing: -0.045em;
+  margin: 4px 0 10px; line-height: 1.1; font-variant-numeric: tabular-nums;
 }
-.callout p { margin: 0; }
+.hero .v span { font-size: 22px; font-weight: 700; margin-left: 2px; color: var(--ink2); }
+.hero .cmp { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; font-size: 13.5px; color: var(--ink2); }
 
-.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
-.kpi {
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: 4px; padding: 16px 18px;
+.pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  border-radius: 999px; padding: 4px 11px;
+  font-size: 12.5px; font-weight: 700; letter-spacing: -0.02em; white-space: nowrap;
 }
-.kpi .label { font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
-.kpi .value { font-size: 24px; font-weight: 700; color: var(--accent); }
-.kpi .note  { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+.pill.up { background: var(--up-soft); color: var(--up); }
+.pill.down { background: var(--down-soft); color: var(--down); }
+.pill.flat { background: #F1F3F6; color: var(--ink2); }
+.pill.ghost { background: #F1F3F6; color: var(--ink2); font-weight: 600; }
 
-table { width: 100%; border-collapse: collapse; background: var(--bg-card); }
-th {
-  background: var(--accent-pale); color: var(--accent);
-  font-weight: 700; font-size: 14px; text-align: left;
-  padding: 10px 12px; border-bottom: 1px solid var(--border);
+/* 히어로 안의 작은 월 막대 */
+.mini { display: flex; gap: 8px; margin-top: 22px; }
+.mini .m { flex: 1 1 0; min-width: 0; }
+.mini .bw { height: 52px; display: flex; align-items: flex-end; }
+.mini .mb { width: 100%; background: #E3E9EF; border-radius: 5px 5px 2px 2px; }
+.mini .m.now .mb { background: var(--brand); }
+.mini .ml {
+  font-size: 10.5px; color: var(--ink3); text-align: center;
+  margin-top: 7px; white-space: nowrap;
 }
-td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
-th.num, td.num { text-align: right; white-space: nowrap; }
-tr:last-child td { border-bottom: none; }
-tfoot td { font-weight: 700; background: #FAFAF7; }
+.mini .m.now .ml { color: var(--brand-deep); font-weight: 800; }
 
-.bar-cell { width: 42%; min-width: 120px; }
-.bar-track { background: #F0F0EC; border-radius: 2px; height: 14px; width: 100%; }
-.bar-fill  { background: var(--accent); border-radius: 2px; height: 14px; }
-.bar-fill.muted { background: var(--neutral); }
+/* ---------- 통계 카드 ---------- */
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 8px; }
+.stat { background: var(--surface); border-radius: var(--r-md); padding: 18px 20px; box-shadow: var(--sh); }
+.stat .k { font-size: 12.5px; color: var(--ink2); font-weight: 600; }
+.stat .v {
+  font-size: 22px; font-weight: 800; letter-spacing: -0.04em;
+  margin: 3px 0 2px; font-variant-numeric: tabular-nums;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.stat .k { min-height: 2.6em; }
+.stat .s { font-size: 12px; color: var(--ink3); }
 
+/* ---------- 섹션 ---------- */
+h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 3px; }
+.lead { color: var(--ink3); font-size: 13px; margin: 0 0 14px; }
+
+.card { background: var(--surface); border-radius: var(--r-lg); box-shadow: var(--sh); overflow: hidden; }
+.card.pad { padding: 8px 6px; }
+
+/* ---------- 목록 행 ---------- */
+.row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 20px; cursor: pointer;
+  border-radius: var(--r-md); transition: background .13s;
+}
+.row + .row { box-shadow: inset 0 1px 0 var(--line); }
+.row:hover { background: #F8FAFB; }
+.row.open { background: var(--brand-soft); box-shadow: none; }
+.row.open + .row { box-shadow: none; }
+.row.static { cursor: default; }
+.row.static:hover { background: transparent; }
+
+.ava {
+  width: 40px; height: 40px; border-radius: 13px; flex: none;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 800; font-size: 16px; letter-spacing: -0.02em;
+}
+.swatch { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+
+.rmain { flex: 1; min-width: 0; }
+.rtitle {
+  font-size: 15px; font-weight: 700; letter-spacing: -0.02em;
+  display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
+}
+/* 이름이 글자 사이에서 끊기지 않게 한다 */
+.nm { white-space: nowrap; }
+.rmeta, .lead, .fb { word-break: keep-all; }
+.rmeta { font-size: 12.5px; color: var(--ink3); margin-top: 1px; }
+.rside { text-align: right; flex: none; }
+.rval { font-size: 16px; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.rsub { font-size: 12px; color: var(--ink3); margin-top: 1px; font-variant-numeric: tabular-nums; }
+
+.track { height: 6px; border-radius: 999px; background: #EDF1F5; margin-top: 8px; overflow: hidden; }
+.track i { display: block; height: 100%; border-radius: 999px; }
+
+.tag {
+  font-size: 11px; font-weight: 700; border-radius: 999px;
+  padding: 2px 8px; background: #F1F3F6; color: var(--ink2); white-space: nowrap;
+}
+.tag.warn { background: var(--up-soft); color: var(--up); }
+
+/* ---------- 도넛 ---------- */
+.donutbox { display: grid; grid-template-columns: 210px 1fr; gap: 6px; align-items: center; }
+.donut { position: relative; width: 190px; height: 190px; margin: 14px auto; }
+.donut svg { width: 100%; height: 100%; display: block; transform: rotate(-90deg); }
+.donut .mid {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; text-align: center; pointer-events: none;
+}
+.donut .mid .t { font-size: 11.5px; color: var(--ink3); font-weight: 600; }
+.donut .mid .n {
+  font-size: 19px; font-weight: 800; letter-spacing: -0.035em; font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 월별 막대 ---------- */
+.bars { display: flex; align-items: flex-end; gap: 14px; padding: 22px 20px 14px; }
+.bcol { flex: 1 1 0; min-width: 0; text-align: center; }
+.bcol .area { height: 170px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; }
+.bcol .sum {
+  font-size: 12.5px; font-weight: 700; margin-bottom: 7px;
+  white-space: nowrap; font-variant-numeric: tabular-nums;
+}
+.bcol .stk {
+  width: 100%; max-width: 78px; margin: 0 auto;
+  display: flex; flex-direction: column-reverse;
+  border-radius: 8px 8px 4px 4px; overflow: hidden; min-height: 3px;
+}
+.bcol .stk i { display: block; width: 100%; }
+.bcol .mon { font-size: 12px; color: var(--ink3); margin-top: 10px; }
+.bcol.now .mon { color: var(--ink); font-weight: 700; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; padding: 0 20px 18px; font-size: 12.5px; color: var(--ink2); }
+.legend .it { display: flex; align-items: center; gap: 7px; }
+.legend b { color: var(--ink); font-weight: 700; }
+
+/* ---------- 알림 ---------- */
+.note {
+  background: var(--surface); border-radius: var(--r-md);
+  padding: 15px 18px; box-shadow: var(--sh); margin: 14px 0;
+  font-size: 13.5px; color: var(--ink2); display: flex; gap: 12px; align-items: flex-start;
+}
+.note .bar { width: 3px; align-self: stretch; border-radius: 999px; background: var(--brand); flex: none; }
+.note.warn .bar { background: var(--up); }
+.note b, .note strong { color: var(--ink); }
+.note p { margin: 0; }
+
+.hint { font-size: 12.5px; color: var(--ink3); margin: 14px 2px 0; }
+
+/* ---------- 보장 칩 ---------- */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.chip {
+  font-size: 11.5px; font-weight: 600; border-radius: 999px; padding: 3px 10px;
+  background: var(--brand-soft); color: var(--brand-deep); white-space: nowrap;
+}
+.chip.off { background: #F4F6F8; color: var(--ink3); }
+.chip b { font-weight: 800; }
+
+/* ---------- 점검 항목 ---------- */
+.flags { display: grid; gap: 11px; }
+.flag { background: var(--surface); border-radius: var(--r-md); padding: 17px 19px; box-shadow: var(--sh); }
+.flag .ft { font-weight: 800; font-size: 14.5px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; letter-spacing: -0.02em; }
+.flag .fb { font-size: 13px; color: var(--ink2); margin-top: 6px; }
+.flag .fq {
+  font-size: 12.5px; color: var(--ink); background: #F6F8FA;
+  border-radius: var(--r-sm); padding: 10px 13px; margin-top: 10px;
+}
+.flag .fq .q { color: var(--ink3); font-weight: 700; font-size: 11px; display: block; margin-bottom: 3px; }
+.src { font-size: 11px; color: var(--ink3); margin-top: 7px; }
+
+/* ---------- 상세 ---------- */
+.detail-host { display: none; padding: 4px 8px 14px; }
+.dtl-head {
+  font-size: 12.5px; color: var(--ink2); font-weight: 700;
+  padding: 10px 12px 8px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+}
+.dtl-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 12px; border-radius: var(--r-sm); background: #F8FAFB; margin-bottom: 6px;
+}
+.dtl-main { flex: 1; min-width: 0; }
+.dtl-t { font-size: 13.5px; font-weight: 700; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.dtl-s { font-size: 11.5px; color: var(--ink3); margin-top: 1px; word-break: break-all; }
+.dtl-a { font-size: 14px; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.dtl-a.in { color: var(--brand); }
+.dtl-note { font-size: 11.5px; color: var(--ink3); padding: 6px 12px 0; }
+
+.chev {
+  width: 7px; height: 7px; flex: none; margin-left: 2px;
+  border-right: 2px solid var(--ink3); border-bottom: 2px solid var(--ink3);
+  transform: rotate(-45deg); transition: transform .15s ease;
+}
+.row.open .chev { transform: rotate(45deg); border-color: var(--brand); }
+
+/* ---------- 검산·꼬리말 ---------- */
 .check {
-  margin-top: 10px; font-size: 13px; color: var(--text-secondary);
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: 4px; padding: 8px 12px;
+  font-size: 12.5px; color: var(--ink3); margin: 10px 4px 0;
+  display: flex; align-items: center; gap: 7px;
 }
-.check.ok   { color: var(--accent); }
-.check.bad  { color: var(--sub-coral); font-weight: 700; }
+.check.ok b { color: var(--brand); }
+.check.bad { color: var(--up); font-weight: 700; }
 
 .footer {
-  margin-top: 48px; padding: 14px 16px; border-radius: 4px;
-  background: var(--accent-pale); border-left: 3px solid var(--sub-coral);
-  font-size: 13px; color: var(--text-primary);
+  margin-top: 46px; background: var(--surface); border-radius: var(--r-md);
+  padding: 18px 20px; box-shadow: var(--sh); font-size: 12.5px; color: var(--ink3);
 }
-.footer strong { color: var(--sub-coral); }
-.muted-text { color: var(--text-secondary); font-size: 13px; }
+.footer .warn { color: var(--up); font-weight: 700; }
 
-/* ---- 눌러서 펼치는 상세 ---- */
-tr[data-kind] { cursor: pointer; }
-tr[data-kind]:hover { background: var(--accent-pale); }
-tr[data-kind] td:first-child::before {
-  content: "▸ "; color: var(--accent); font-weight: 700;
-}
-tr[data-kind].open td:first-child::before { content: "▾ "; }
-tr[data-kind].open { background: var(--accent-pale); }
-tr.detail > td { background: #FAFAF7; padding: 14px 16px; }
-.detail-title { font-weight: 700; color: var(--accent); margin-bottom: 8px; font-size: 14px; }
-.detail-table { width: 100%; border-collapse: collapse; background: transparent; }
-.detail-table th {
-  background: transparent; color: var(--text-secondary); font-size: 12px;
-  padding: 5px 8px; border-bottom: 1px solid var(--border);
-}
-.detail-table td {
-  font-size: 13px; padding: 5px 8px; border-bottom: 1px dotted var(--border);
-}
-.detail-note { color: var(--text-secondary); font-size: 12px; margin-top: 8px; }
-.dup-tag {
-  color: var(--sub-coral); font-weight: 700; font-size: 11px;
-  border: 1px solid var(--sub-coral); border-radius: 3px; padding: 0 4px; margin-left: 4px;
-}
-.hint {
-  font-size: 13px; color: var(--text-secondary); margin: 0 0 10px;
+/* ==========================================================================
+   휴대폰
+   ========================================================================== */
+@media (max-width: 720px) {
+  body { padding: 22px 16px 60px; }
+  .hero { padding: 22px 20px 18px; border-radius: var(--r-md); }
+  .hero .v { font-size: 33px; }
+  .hero .v span { font-size: 19px; }
+  .stats { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat { padding: 14px 15px; }
+  .stat .v { font-size: 18px; }
+  .stat .k { min-height: 0; font-size: 12px; }
+  .stat .s { font-size: 11.5px; }
+  h2 { font-size: 16px; margin-top: 30px; }
+  .card { border-radius: var(--r-md); }
+  .row { padding: 13px 14px; gap: 10px; }
+  .ava { width: 34px; height: 34px; border-radius: 10px; font-size: 14px; }
+  .chev { display: none; }            /* 좁은 화면에서는 이름과 금액에 자리를 준다 */
+  .rmeta { font-size: 11.5px; }
+  .rside .rsub { font-size: 11px; }
+  .rtitle { font-size: 14.5px; }
+  .rval { font-size: 15px; }
+  .donutbox { grid-template-columns: 1fr; }
+  .donut { width: 168px; height: 168px; margin: 18px auto 6px; }
+  .bars { gap: 9px; padding: 18px 14px 10px; }
+  .bcol .area { height: 136px; }
+  .bcol .sum { font-size: 11.5px; }
+  .bcol .mon { font-size: 11.5px; }
+  .legend { padding: 0 15px 16px; gap: 6px 14px; }
+  .mini { gap: 7px; }
 }
 
-@media (max-width: 640px) {
-  body { padding: 16px 12px 48px; }
-  .bar-cell { display: none; }
-  h1 { font-size: 22px; }
+@media (max-width: 400px) {
+  .hero .v { font-size: 29px; }
+  .rside .rval { font-size: 13px; }
+  .rtitle { font-size: 13.5px; }
+  .ava { width: 30px; height: 30px; font-size: 13px; }
+}
+
+@media print {
+  body { background: #fff; }
+  .hint, .detail-host { display: none !important; }
+  .card, .hero, .stat, .footer { box-shadow: none; border: 1px solid var(--line); }
 }
 """
 
@@ -141,16 +334,36 @@ def 돈(n) -> str:
     return f"{n:,.0f}원"
 
 
+def 짧은돈(n) -> str:
+    """6,389,600 → 약 639만원"""
+    n = abs(round(n))
+    if n >= 100_000_000:
+        return f"약 {n/100_000_000:.1f}억원"
+    if n >= 10_000:
+        return f"약 {n//10_000:,}만원"
+    return f"{n:,}원"
+
+
 def esc(s) -> str:
     return html.escape(str(s))
 
 
-def 막대(값, 최대, muted=False):
-    pct = 0 if 최대 <= 0 else max(1.5, 값 / 최대 * 100)
-    cls = "bar-fill muted" if muted else "bar-fill"
-    return (f'<div class="bar-track"><div class="{cls}" style="width:{pct:.1f}%"></div></div>')
+def 머리글자(이름: str) -> str:
+    """아바타에 넣을 한 글자. '아빠_김정우' → '아'"""
+    s = str(이름).strip()
+    return s[0] if s else "?"
 
 
+def 증감칩(차이, 기준=None):
+    if 차이 == 0 or 기준 in (0, None):
+        return '<span class="pill flat">변화 없음</span>'
+    비율 = 차이 / 기준 * 100
+    cls, 기호 = ("up", "▲") if 차이 > 0 else ("down", "▼")
+    return f'<span class="pill {cls}">{기호} {abs(비율):.0f}%</span>'
+
+
+# ============================================================================
+# 자료 읽기와 집계 (계산은 여기서만 한다)
 # ============================================================================
 def 거래읽기(path: Path):
     with open(path, encoding="utf-8-sig", newline="") as f:
@@ -166,35 +379,40 @@ def 집계(거래들):
     수입 = [t for t in 거래들 if t["구분"] == "수입"]
     이체 = [t for t in 거래들 if t["구분"] == "이체"]
 
-    사람별 = defaultdict(int)
-    카테고리별 = defaultdict(int)
-    월별 = defaultdict(int)
-    월사람 = defaultdict(int)
-    월카테고리 = defaultdict(int)
+    사람별, 카테고리별 = defaultdict(int), defaultdict(int)
+    월별, 월사람, 월카테고리 = defaultdict(int), defaultdict(int), defaultdict(int)
+    수혜자별, 월수혜자, 수혜자카테고리 = defaultdict(int), defaultdict(int), defaultdict(int)
 
     for t in 지출:
         금 = -t["금액"]                      # 지출은 음수로 저장돼 있다
         월 = t["날짜"][:7]
+        받은 = t.get("수혜자") or t["사람"]
         사람별[t["사람"]] += 금
+        수혜자별[받은] += 금
         카테고리별[t["카테고리"]] += 금
         월별[월] += 금
         월사람[(월, t["사람"])] += 금
+        월수혜자[(월, 받은)] += 금
         월카테고리[(월, t["카테고리"])] += 금
+        수혜자카테고리[(받은, t["카테고리"])] += 금
+
+    def 정렬(d):
+        return sorted(d, key=lambda k: (k == "가족공통", -d[k]))   # 가족공통은 뒤로
 
     return {
         "지출": 지출, "수입": 수입, "이체": 이체,
         "사람별": dict(사람별), "카테고리별": dict(카테고리별),
+        "수혜자별": dict(수혜자별), "월수혜자": dict(월수혜자),
+        "수혜자카테고리": dict(수혜자카테고리),
         "월별": dict(월별), "월사람": dict(월사람), "월카테고리": dict(월카테고리),
         "총지출": sum(사람별.values()),
         "총수입": sum(t["금액"] for t in 수입),
         "달들": sorted(월별),
         "사람들": sorted(사람별, key=lambda k: -사람별[k]),
+        "수혜자들": 정렬(수혜자별),
     }
 
 
-# ============================================================================
-# 고정비 — 매달 같은 날 비슷한 금액이 빠져나가는 것
-# ============================================================================
 def 고정비찾기(A):
     """판정 근거를 함께 돌려준다. 근거를 보여줘야 사용자가 오탐을 스스로 걸러낸다."""
     관측개월 = len(A["달들"])
@@ -208,8 +426,7 @@ def 고정비찾기(A):
     결과 = []
     for (사람, 가맹점), ts in 그룹.items():
         달 = {t["날짜"][:7] for t in ts}
-        # 매달 빠짐없이, 한 달에 한 번씩
-        if len(달) != 관측개월 or len(ts) != 관측개월:
+        if len(달) != 관측개월 or len(ts) != 관측개월:   # 매달 빠짐없이, 한 달에 한 번
             continue
 
         금액들 = [-t["금액"] for t in ts]
@@ -226,14 +443,12 @@ def 고정비찾기(A):
 
         # 결제일 ±2일까지는 확실한 고정비로 본다 (28·31일처럼 월말 결제는 달마다 날짜가 밀린다)
         확신 = "높음" if (금액편차 <= 0.02 and 결제일편차 <= 2.0) else "보통"
-        마지막 = max(t["날짜"] for t in ts)
         결과.append({
             "가맹점": 가맹점, "사람": 사람,
             "월금액": round(평균), "연환산": round(평균 * 12),
             "카테고리": ts[0]["카테고리"],
-            "확신": 확신, "마지막": 마지막,
-            "근거": (f"{관측개월}개월 중 {len(달)}개월 · "
-                   f"금액 편차 {금액편차*100:.1f}% · "
+            "확신": 확신, "마지막": max(t["날짜"] for t in ts),
+            "근거": (f"{관측개월}개월 내내 · 금액 편차 {금액편차*100:.1f}% · "
                    f"결제일 {'매달 ' + str(결제일들[0]) + '일' if 결제일편차 == 0 else f'±{결제일편차:.1f}일'}"),
         })
 
@@ -254,9 +469,8 @@ def 전월대비(A):
     if len(A["달들"]) < 2:
         return None, None, []
     이번, 지난 = A["달들"][-1], A["달들"][-2]
-    카테고리 = sorted({c for (m, c) in A["월카테고리"]})
     행 = []
-    for c in 카테고리:
+    for c in sorted({c for (m, c) in A["월카테고리"]}):
         a = A["월카테고리"].get((이번, c), 0)
         b = A["월카테고리"].get((지난, c), 0)
         if a == 0 and b == 0:
@@ -268,10 +482,455 @@ def 전월대비(A):
 
 
 # ============================================================================
-def 표_고정비(고정비들, 관측개월, 중복구독):
+# 자산 · 가족 · 보험 (거래가 아니라 현황 자료)
+# ============================================================================
+자산색 = {"부동산": "#4C6FFF", "금융자산": "#00A86B", "현금": "#FFA61A", "부채": "#FF6B6B"}
+
+
+def 표읽기(path: Path):
+    if not path or not path.exists():
+        return []
+    with open(path, encoding="utf-8-sig", newline="") as f:
+        return [r for r in csv.DictReader(f) if any((v or "").strip() for v in r.values())]
+
+
+def 자산집계(행들):
+    분류별, 항목 = defaultdict(int), []
+    for r in 행들:
+        try:
+            금 = int(str(r.get("평가금액", "")).replace(",", "").strip() or 0)
+        except ValueError:
+            continue
+        분류 = (r.get("분류") or "기타").strip()
+        분류별[분류] += 금
+        항목.append({"사람": (r.get("사람") or "").strip(), "분류": 분류,
+                    "세부항목": (r.get("세부항목") or "").strip(),
+                    "기관": (r.get("기관") or "").strip(), "금액": 금,
+                    "비고": (r.get("비고") or "").strip()})
+    자산 = sum(v for k, v in 분류별.items() if k != "부채")
+    부채 = 분류별.get("부채", 0)
+    항목.sort(key=lambda x: -x["금액"])
+    return {"분류별": dict(분류별), "항목": 항목, "총자산": 자산, "부채": 부채, "순자산": 자산 - 부채}
+
+
+def 실손세대(계약일: str) -> str:
+    """판매 시기로 실손보험 세대를 구분한다 (1세대 ~2009.09 / 2세대 ~2017.03 / 3세대 ~2021.06 / 4세대~)."""
+    try:
+        d = dt.date.fromisoformat(계약일[:10])
+    except (ValueError, TypeError):
+        return ""
+    if d < dt.date(2009, 10, 1):
+        return "1세대"
+    if d < dt.date(2017, 4, 1):
+        return "2세대"
+    if d < dt.date(2021, 7, 1):
+        return "3세대"
+    return "4세대"
+
+
+실손자기부담 = {
+    "1세대": "자기부담이 거의 없는 대신 보험료가 비싼 편입니다.",
+    "2세대": "표준형 기준 자기부담률이 20%입니다.",
+    "3세대": "비급여는 30%와 2만원 중 큰 금액을 본인이 부담합니다.",
+    "4세대": "비급여는 30%와 3만원 중 큰 금액을 본인이 부담합니다.",
+}
+
+# 실제 손해액까지만 보상되는 담보 — 여러 건 들어도 합쳐서 더 받지 못한다
+비례보상담보 = {"실손_급여", "실손_비급여", "배상책임", "자동차_대물배상", "자동차_자기차량손해"}
+
+
+def 금액읽기_문자(s):
+    s = (s or "").strip()
+    if not s:
+        return None
+    if s in ("무한", "무제한"):
+        return "무한"
+    try:
+        return int(s.replace(",", ""))
+    except ValueError:
+        return s
+
+
+def 보험집계(행들):
+    증권, 보장 = {}, defaultdict(lambda: defaultdict(list))
+    for r in 행들:
+        사람 = (r.get("사람") or "").strip()
+        보험사 = (r.get("보험사") or "").strip()
+        상품 = (r.get("상품명") or "").strip()
+        if not (사람 and 보험사):
+            continue
+        키 = (사람, 보험사, 상품)
+        if 키 not in 증권:
+            증권[키] = {"사람": 사람, "보험사": 보험사, "상품명": 상품,
+                      "계약일": (r.get("계약일") or "").strip(),
+                      "만기일": (r.get("만기일") or "").strip(),
+                      "월보험료": 0, "갱신형": (r.get("갱신형") or "").strip(),
+                      "비고": (r.get("비고") or "").strip(), "보장": []}
+        보험료 = 금액읽기_문자(r.get("월보험료"))
+        if isinstance(보험료, int):
+            증권[키]["월보험료"] = 보험료
+        항목 = (r.get("보장항목") or "").strip()
+        금 = 금액읽기_문자(r.get("보장금액"))
+        if 항목:
+            증권[키]["보장"].append((항목, 금))
+            보장[항목][사람].append({"보험사": 보험사, "상품명": 상품, "금액": 금,
+                                  "비고": (r.get("비고") or "").strip()})
+    return {"증권": list(증권.values()), "보장": {k: dict(v) for k, v in 보장.items()}}
+
+
+def 보험점검(보험, 가족들, 고정비들, 월지출):
+    """사실만 짚고, 확인할 질문을 붙인다. 가입·해지를 권하지 않는다."""
+    오늘 = dt.date.today()
+    신호 = []
+
+    # 1) 실손처럼 실제 손해액까지만 보상되는 담보를 한 사람이 두 건 이상 가진 경우
+    for 항목, 사람별 in 보험["보장"].items():
+        if 항목 not in 비례보상담보:
+            continue
+        for 사람, 건들 in 사람별.items():
+            if len(건들) >= 2:
+                목록 = ", ".join(f'{b["보험사"]} {b["상품명"]}' for b in 건들)
+                신호.append({
+                    "급": "warn", "제목": f"{사람} · {항목} 보장이 {len(건들)}건입니다",
+                    "본문": (f"{목록}. 실손의료보험처럼 실제 부담한 금액까지만 보상하는 담보는 "
+                           f"여러 건에 가입해도 실제 의료비를 넘겨 받지 못합니다(비례보상). "
+                           f"개인 실손과 회사 단체 실손이 겹칠 때는 실손보험 중지제도를 쓸 수 있습니다."),
+                    "질문": "두 건이 각각 얼마씩 나눠 보상되는지, 중지제도를 쓸 수 있는 조건은 무엇인지 확인하고 싶습니다.",
+                    "출처": "금융감독원 실손보험 중복가입 안내",
+                })
+
+    # 2) 보장이 아예 없는 가족
+    가입자 = {s["사람"] for s in 보험["증권"]}
+    for 이름 in 가족들:
+        if 이름 not in 가입자:
+            신호.append({
+                "급": "warn", "제목": f"{이름} 님은 등록된 증권이 한 건도 없습니다",
+                "본문": "다른 가족은 실손·암 보장을 가지고 있는데 이 사람만 비어 있습니다. "
+                      "실제로 없는 것인지, 증권을 아직 못 옮겨 적은 것인지 확인이 필요합니다.",
+                "질문": "이 사람 앞으로 된 보험이 있는지, 있다면 증권을 다시 받을 수 있는지 알고 싶습니다.",
+                "출처": "",
+            })
+        else:
+            없는것 = [항 for 항 in ("실손_급여", "암_일반암")
+                    if 이름 not in 보험["보장"].get(항, {})]
+            if 없는것:
+                신호.append({
+                    "급": "info", "제목": f"{이름} 님은 {' · '.join(없는것)} 보장이 없습니다",
+                    "본문": "가족 중 다른 사람은 가지고 있는 보장입니다. 빠진 것인지 일부러 넣지 않은 것인지 확인해 보세요.",
+                    "질문": f"{' · '.join(없는것)} 보장이 정말 없는지, 다른 증권에 포함돼 있지는 않은지 확인하고 싶습니다.",
+                    "출처": "",
+                })
+
+    # 3) 실손 세대 안내
+    세대표 = []
+    for s in 보험["증권"]:
+        if any(항.startswith("실손") for 항, _ in s["보장"]):
+            g = 실손세대(s["계약일"])
+            if g:
+                세대표.append(f'{s["사람"]} {s["보험사"]} <b>{g}</b> — {실손자기부담[g]}')
+    if 세대표:
+        신호.append({
+            "급": "info", "제목": "실손보험은 가입 시기에 따라 자기부담이 다릅니다",
+            "본문": "<br>".join(세대표),
+            "질문": "내 실손이 몇 세대이고 비급여 자기부담이 얼마인지, 전환하면 무엇이 달라지는지 설명을 듣고 싶습니다.",
+            "출처": "실손의료보험 세대 구분 (2009.10 / 2017.04 / 2021.07 판매 기준)",
+        })
+
+    # 4) 만기·갱신이 1년 안에 오는 것
+    임박 = []
+    for s in 보험["증권"]:
+        try:
+            만기 = dt.date.fromisoformat(s["만기일"][:10])
+        except (ValueError, TypeError):
+            continue
+        남은 = (만기 - 오늘).days
+        if 0 <= 남은 <= 365:
+            임박.append(f'{s["사람"]} {s["보험사"]} {s["상품명"]} — {만기} (D-{남은})')
+    if 임박:
+        신호.append({
+            "급": "info", "제목": f"1년 안에 만기·갱신이 오는 증권 {len(임박)}건",
+            "본문": "<br>".join(임박),
+            "질문": "갱신하면 보험료가 얼마가 되는지, 보장 내용이 달라지는 부분이 있는지 미리 알고 싶습니다.",
+            "출처": "",
+        })
+
+    # 5) 암보험 면책·감액 안내
+    암증권 = [s for s in 보험["증권"] if any(항.startswith("암") for 항, _ in s["보장"])]
+    if 암증권:
+        신호.append({
+            "급": "info", "제목": "암보험은 가입 직후 바로 다 나오지 않습니다",
+            "본문": ("보통 가입일부터 90일이 지나야 보장이 시작되고(면책 기간), 그 뒤로도 1~2년 동안은 "
+                   "진단금의 절반만 지급하는 감액 기간을 두는 경우가 많습니다. "
+                   "유사암(갑상선암 등)은 면책이 적용되지 않는 대신 진단금이 일반암보다 훨씬 적습니다."),
+            "질문": "내 암보험의 면책 기간과 감액 기간이 언제 끝나는지, 유사암 진단금은 얼마인지 확인하고 싶습니다.",
+            "출처": "암보험 약관 일반 조건",
+        })
+
+    # 6) 자동차보험 의무 담보
+    차증권 = [s for s in 보험["증권"] if any(항.startswith("자동차") for 항, _ in s["보장"])]
+    if 차증권:
+        신호.append({
+            "급": "info", "제목": "자동차보험 의무 담보가 들어 있는지 확인해 두세요",
+            "본문": ("대인배상Ⅰ과 대물배상 2천만원 이상은 법으로 정해진 의무 가입 담보입니다. "
+                   "대인배상Ⅱ·자기신체사고·무보험차상해·자기차량손해는 종합보험 쪽이라 선택입니다."),
+            "질문": "지금 가입한 자동차보험에 의무 담보가 모두 들어 있는지, 자기부담금은 얼마인지 확인하고 싶습니다.",
+            "출처": "자동차손해배상보장법상 의무보험",
+        })
+
+    # 7) 증권 ↔ 실제 출금 대조 (이 도구의 핵심)
+    증권료 = defaultdict(int)
+    for s in 보험["증권"]:
+        if s["월보험료"]:
+            증권료[s["보험사"]] += s["월보험료"]
+    출금 = defaultdict(int)
+    for f in 고정비들:
+        if f["카테고리"] == "보험":
+            보험사 = f["가맹점"].split()[0]
+            출금[보험사] += f["월금액"]
+
+    for 보험사 in sorted(set(증권료) | set(출금)):
+        증, 출 = 증권료.get(보험사, 0), 출금.get(보험사, 0)
+        if 증 == 0 and 출 > 0:
+            신호.append({
+                "급": "warn", "제목": f"증권 목록에 없는데 매달 {돈(출)}이 나가고 있어요 — {보험사}",
+                "본문": "거래 내역에는 매달 같은 날 같은 금액이 빠져나가는데, 옮겨 적은 증권 목록에는 없습니다. "
+                      "가계부 앱은 소비만, 보험 앱은 보험만 보기 때문에 이런 건 어느 쪽에서도 잘 안 잡힙니다.",
+                "질문": f"{보험사}에서 매달 {돈(출)}이 출금되는데 어떤 보험인지, 증권을 다시 받을 수 있는지 알고 싶습니다.",
+                "출처": "",
+            })
+        elif 출 == 0 and 증 > 0:
+            신호.append({
+                "급": "info", "제목": f"증권은 있는데 출금 기록이 안 보여요 — {보험사} (월 {돈(증)})",
+                "본문": "다른 계좌에서 나가고 있거나, 회사가 대신 내고 있거나, 이미 끝난 계약일 수 있습니다.",
+                "질문": f"{보험사} 보험료가 어느 계좌에서 나가고 있는지, 계약이 유지 중인지 확인하고 싶습니다.",
+                "출처": "",
+            })
+        elif 증 and 출 and abs(증 - 출) > max(1000, 증 * 0.05):
+            신호.append({
+                "급": "info", "제목": f"증권상 보험료와 실제 출금액이 다릅니다 — {보험사}",
+                "본문": f"증권 기준 월 {돈(증)} / 실제 출금 월 {돈(출)} (차이 {돈(abs(증-출))}). "
+                      f"가족 중 일부 증권이 다른 계좌에서 나가거나, 갱신으로 보험료가 바뀌었을 수 있습니다.",
+                "질문": f"{보험사}에 가입된 계약이 모두 몇 건이고 각각 얼마씩 나가는지 확인하고 싶습니다.",
+                "출처": "",
+            })
+
+    # 8) 보험료 부담 비중 (사실 계산)
+    총보험료 = sum(s["월보험료"] for s in 보험["증권"])
+    if 총보험료 and 월지출:
+        신호.append({
+            "급": "info", "제목": f"증권 기준 월 보험료는 {돈(총보험료)}입니다",
+            "본문": f"가구 월평균 지출 {돈(월지출)}의 <b>{총보험료/월지출*100:.1f}%</b>, "
+                  f"1년이면 {짧은돈(총보험료*12)}입니다.",
+            "질문": "지금 보장 내용에 비해 보험료가 적정한지, 같은 보장을 유지하면서 조정할 여지가 있는지 묻고 싶습니다.",
+            "출처": "",
+        })
+
+    순서 = {"warn": 0, "info": 1}
+    신호.sort(key=lambda s: 순서.get(s["급"], 9))
+    return 신호
+
+
+# ============================================================================
+# 화면 조각
+# ============================================================================
+def 히어로(A, 이번, 지난):
+    비교 = '<span class="pill flat">비교할 지난달 자료 없음</span>'
+    if 이번 and 지난 and A["월별"].get(지난):
+        d = A["월별"][이번] - A["월별"][지난]
+        비교 = (f'{증감칩(d, A["월별"][지난])}'
+                f'<span>{esc(지난)} {돈(A["월별"][지난])} → '
+                f'<b style="color:var(--ink)">{esc(이번)} {돈(A["월별"][이번])}</b></span>')
+
+    보일달 = A["달들"][-12:]
+    값들 = [A["월별"][m] for m in 보일달]
+    최대, 최소 = max(값들), min(값들)
+    폭 = (최대 - 최소) or 최대 or 1
+    칸 = []
+    for m in 보일달:
+        v = A["월별"][m]
+        높이 = 34 + (v - 최소) / 폭 * 66      # 차이가 작아도 눈에 보이게 아래를 띄운다
+        이번달 = " now" if m == 이번 else ""
+        칸.append(f'<div class="m{이번달}"><div class="bw"><div class="mb" '
+                  f'style="height:{높이:.1f}%" title="{esc(m)} {돈(v)}"></div></div>'
+                  f'<div class="ml">{int(m[5:])}월</div></div>')
+
+    return f"""<div class="hero">
+  <div class="k">가구 총지출 · {esc(A["달들"][0])} ~ {esc(A["달들"][-1])}</div>
+  <div class="v tnum">{A["총지출"]:,}<span>원</span></div>
+  <div class="cmp">{비교}</div>
+  <div class="mini">{''.join(칸)}</div>
+</div>"""
+
+
+def 통계카드(A, 자산, 고정비월합, 고정비연합, 확인):
+    개월 = max(1, len(A["달들"]))
+    자산카드 = ""
+    if 자산["총자산"]:
+        자산카드 = f"""<div class="stat"><div class="k">총자산</div>
+    <div class="v tnum" style="color:var(--brand-deep)">{짧은돈(자산["총자산"])}</div>
+    <div class="s">{'순자산 ' + 짧은돈(자산["순자산"]) if 자산["부채"] else 돈(자산["총자산"])}</div></div>"""
+    return f"""<div class="stats">
+  {자산카드}
+  <div class="stat"><div class="k">매달 빠져나가는 고정비</div>
+    <div class="v tnum">{돈(고정비월합)}</div>
+    <div class="s">1년이면 {짧은돈(고정비연합)}</div></div>
+  <div class="stat"><div class="k">월평균 수입</div>
+    <div class="v tnum">{짧은돈(A["총수입"] / 개월)}</div>
+    <div class="s">{개월}개월 평균</div></div>
+  <div class="stat"><div class="k">확인할 항목</div>
+    <div class="v tnum" style="color:{'var(--up)' if 확인 else 'var(--ink)'}">{확인}건</div>
+    <div class="s">아래에서 하나씩 짚어드려요</div></div>
+</div>"""
+
+
+def 목록_수혜자(A, 색맵):
+    """누구를 위해 쓴 돈인지. 돈을 낸 사람이 아니라 그 돈이 쓰인 사람 기준."""
+    총, 개월 = A["총지출"], max(1, len(A["달들"]))
+    행 = []
+    for 사람 in A["수혜자들"]:
+        금 = A["수혜자별"][사람]
+        추이 = [A["월수혜자"].get((m, 사람), 0) for m in A["달들"]]
+        칩 = 증감칩(추이[-1] - 추이[-2], 추이[-2]) if len(추이) >= 2 else ""
+        큰것 = sorted(((c, v) for (p, c), v in A["수혜자카테고리"].items() if p == 사람),
+                    key=lambda kv: -kv[1])[:2]
+        설명 = " · ".join(esc(c) for c, _ in 큰것)
+        행.append(f"""<div class="row" data-kind="beneficiary" data-key="{esc(사람)}">
+  <div class="ava" style="background:{색맵[사람]}">{esc(머리글자(사람))}</div>
+  <div class="rmain">
+    <div class="rtitle"><span class="nm">{esc(사람)}</span>{칩}</div>
+    <div class="rmeta">월평균 {짧은돈(금//개월)} · 주로 {설명}</div>
+    <div class="track"><i style="width:{금/총*100:.1f}%;background:{색맵[사람]}"></i></div>
+  </div>
+  <div class="rside"><div class="rval tnum">{돈(금)}</div>
+    <div class="rsub">{금/총*100:.1f}%</div></div>
+  <div class="chev"></div>
+</div>""")
+
+    합 = sum(A["수혜자별"].values())
+    검산 = (f'<div class="check ok">수혜자 합계 <b>{돈(합)}</b> = 가구 총지출 {돈(총)} ✓</div>'
+            if 합 == 총 else
+            f'<div class="check bad">검산 불일치: 수혜자 합계 {돈(합)} ≠ 가구 총지출 {돈(총)} ✗</div>')
+
+    return f"""<div class="card pad" data-group>{''.join(행)}
+  <div class="detail-host"></div>
+</div>{검산}"""
+
+
+def 목록_결제자(A):
+    """누구 카드에서 나갔나. 위와 숫자가 다른 것이 정상이다."""
+    총 = A["총지출"]
+    행 = []
+    for 사람 in A["사람들"]:
+        금 = A["사람별"][사람]
+        행.append(f"""<div class="row" data-kind="member" data-key="{esc(사람)}">
+  <div class="rmain">
+    <div class="rtitle" style="font-size:14px"><span class="nm">{esc(사람)}</span></div>
+    <div class="track"><i style="width:{금/총*100:.1f}%;background:#B4BECB"></i></div>
+  </div>
+  <div class="rside"><div class="rval tnum" style="font-size:14.5px">{돈(금)}</div>
+    <div class="rsub">{금/총*100:.1f}%</div></div>
+  <div class="chev"></div>
+</div>""")
+    return f"""<div class="card pad" data-group>{''.join(행)}
+  <div class="detail-host"></div>
+</div>"""
+
+
+def 도넛(항목들, 색맵, 총):
+    """항목들 = [(이름, 금액)]. 회전은 CSS transform 으로 처리한다."""
+    r, 두께 = 62, 22
+    C = 2 * math.pi * r
+    누적, 조각 = 0.0, []
+    for 이름, 금 in 항목들:
+        비 = 금 / 총 if 총 else 0
+        길이 = C * 비
+        조각.append(
+            f'<circle cx="80" cy="80" r="{r}" fill="none" stroke="{색맵.get(이름, 회색)}" '
+            f'stroke-width="{두께}" stroke-dasharray="{길이:.2f} {C-길이:.2f}" '
+            f'stroke-dashoffset="{-누적:.2f}"><title>{esc(이름)} {돈(금)}</title></circle>')
+        누적 += 길이
+    return f"""<div class="donut">
+  <svg viewBox="0 0 160 160" role="img" aria-label="카테고리 비중">
+    <circle cx="80" cy="80" r="{r}" fill="none" stroke="#EDF1F5" stroke-width="{두께}"/>
+    {''.join(조각)}
+  </svg>
+  <div class="mid"><div class="t">총지출</div><div class="n tnum">{짧은돈(총)}</div></div>
+</div>"""
+
+
+def 구역_카테고리(A):
+    항목 = sorted(A["카테고리별"].items(), key=lambda kv: -kv[1])
+    총 = A["총지출"]
+    색맵 = {이름: (카테고리색[i] if i < len(카테고리색) else 회색)
+           for i, (이름, _) in enumerate(항목)}
+
+    행 = []
+    for 이름, 금 in 항목:
+        색 = 색맵[이름]
+        행.append(f"""<div class="row" data-kind="category" data-key="{esc(이름)}">
+  <div class="swatch" style="background:{색}"></div>
+  <div class="rmain">
+    <div class="rtitle">{esc(이름)}</div>
+    <div class="track"><i style="width:{금/총*100:.1f}%;background:{색}"></i></div>
+  </div>
+  <div class="rside"><div class="rval tnum">{돈(금)}</div>
+    <div class="rsub">{금/총*100:.1f}%</div></div>
+  <div class="chev"></div>
+</div>""")
+
+    return f"""<div class="card" data-group>
+  <div class="donutbox">
+    {도넛(항목[:6], 색맵, 총)}
+    <div class="pad" style="padding:8px 6px">{''.join(행[:6])}</div>
+  </div>
+  <div class="pad" style="padding:0 6px 8px;box-shadow:inset 0 1px 0 var(--line)">{''.join(행[6:])}</div>
+  <div class="detail-host"></div>
+</div>"""
+
+
+def 차트_월별(A, 색맵, 이번):
+    """월별 가구 지출을 구성원별로 쌓은 막대.
+
+    SVG 대신 CSS 막대로 그린다. SVG 는 viewBox 가 화면 폭에 맞춰 줄어들면서
+    글자까지 같이 작아져 휴대폰에서 읽기 어려워진다.
+    """
+    달들, 사람들 = A["달들"], A["수혜자들"]
+    if not 달들:
+        return ""
+    최대 = max(A["월별"].values()) or 1
+    눈금 = 최대 * 1.04
+
+    칸들 = []
+    for 월 in 달들:
+        합 = A["월별"][월]
+        조각 = []
+        for 사람 in 사람들:                      # column-reverse 라 첫 사람이 아래에 쌓인다
+            v = A["월수혜자"].get((월, 사람), 0)
+            if v <= 0:
+                continue
+            조각.append(f'<i style="height:{v/합*100:.2f}%;background:{색맵[사람]}" '
+                       f'title="{esc(월)} {esc(사람)} {돈(v)}"></i>')
+        지금 = " now" if 월 == 이번 else ""
+        색 = "var(--ink)" if 월 == 이번 else "var(--ink3)"
+        칸들.append(f"""<div class="bcol{지금}">
+  <div class="area">
+    <div class="sum" style="color:{색}">{짧은돈(합)}</div>
+    <div class="stk" style="height:{합/눈금*100:.2f}%">{''.join(조각)}</div>
+  </div>
+  <div class="mon">{esc(월)}</div>
+</div>""")
+
+    범례 = "".join(
+        f'<span class="it"><span class="swatch" style="background:{색맵[p]}"></span>'
+        f'<b>{esc(p)}</b></span>' for p in 사람들)
+
+    return f'<div class="card"><div class="bars">{"".join(칸들)}</div><div class="legend">{범례}</div></div>'
+
+
+def 목록_고정비(고정비들, 관측개월, 중복구독):
     if not 고정비들:
-        return ('<div class="check">3개월 이상 자료가 쌓이면 고정비를 찾아드립니다. '
-                f'지금은 {관측개월}개월치입니다.</div>')
+        return (f'<div class="note"><div class="bar"></div><p>3개월 이상 자료가 쌓이면 '
+                f'고정비를 찾아드립니다. 지금은 {관측개월}개월치입니다.</p></div>')
 
     월합 = sum(f["월금액"] for f in 고정비들)
     연합 = sum(f["연환산"] for f in 고정비들)
@@ -279,133 +938,183 @@ def 표_고정비(고정비들, 관측개월, 중복구독):
     경고 = ""
     if 중복구독:
         항목 = " / ".join(
-            f'{esc(이름)} ({", ".join(esc(f["사람"]) for f in fs)}, 합쳐서 월 {돈(sum(f["월금액"] for f in fs))})'
+            f'<b>{esc(이름)}</b> — {", ".join(esc(f["사람"]) for f in fs)} '
+            f'(합쳐서 월 {돈(sum(f["월금액"] for f in fs))})'
             for 이름, fs in 중복구독.items())
-        경고 = f"""<div class="callout">
-  <p><strong>같은 서비스가 두 사람 이상에게서 각각 빠져나가고 있어요.</strong><br>{항목}</p>
-</div>"""
+        경고 = (f'<div class="note warn"><div class="bar"></div>'
+                f'<p><strong>같은 서비스가 두 사람 이상에게서 각각 빠져나가고 있어요.</strong><br>{항목}</p></div>')
 
     행 = []
     for f in 고정비들:
-        배지 = ("" if f["확신"] == "높음"
-                else '<span class="muted-text"> (확인 필요)</span>')
-        행.append(f"""<tr data-kind="fixed" data-key="{esc(f["가맹점"])}" data-key2="{esc(f["사람"])}">
-  <td>{esc(f["가맹점"])}{배지}<br><span class="muted-text">{esc(f["근거"])}</span></td>
-  <td>{esc(f["사람"])}</td>
-  <td class="num">{돈(f["월금액"])}</td>
-  <td class="num">{돈(f["연환산"])}</td>
-  <td class="num muted-text">{esc(f["마지막"])}</td>
-</tr>""")
+        배지 = "" if f["확신"] == "높음" else '<span class="tag">확인 필요</span>'
+        행.append(f"""<div class="row" data-kind="fixed" data-key="{esc(f["가맹점"])}" data-key2="{esc(f["사람"])}">
+  <div class="ava" style="background:#F1F3F6;color:var(--ink2);font-size:13px">{esc(머리글자(f["사람"]))}</div>
+  <div class="rmain">
+    <div class="rtitle"><span class="nm">{esc(f["가맹점"])}</span>{배지}</div>
+    <div class="rmeta">{esc(f["사람"])} · {esc(f["근거"])} · 마지막 {esc(f["마지막"])}</div>
+  </div>
+  <div class="rside"><div class="rval tnum">{돈(f["월금액"])}</div>
+    <div class="rsub">1년 {짧은돈(f["연환산"])}</div></div>
+  <div class="chev"></div>
+</div>""")
 
-    return f"""{경고}<table>
-<thead><tr><th>항목 · 판정 근거</th><th>사람</th><th class="num">월</th>
-<th class="num">1년이면</th><th class="num">마지막 결제</th></tr></thead>
-<tbody>{''.join(행)}</tbody>
-<tfoot><tr><td>고정비 {len(고정비들)}건 합계</td><td></td>
-<td class="num">{돈(월합)}</td><td class="num">{돈(연합)}</td><td></td></tr></tfoot>
-</table>
-<div class="check">프로그램은 <strong>매달 반복되는 결제</strong>를 찾아줄 뿐, 그게 필요한 지출인지는 알 수 없습니다.
-마지막 결제일과 판정 근거를 보고 직접 판단해 주세요.</div>"""
+    합계행 = f"""<div class="row static" style="background:#F8FAFB">
+  <div class="swatch" style="background:var(--brand)"></div>
+  <div class="rmain"><div class="rtitle">고정비 {len(고정비들)}건 합계</div></div>
+  <div class="rside"><div class="rval tnum" style="color:var(--brand-deep)">{돈(월합)}</div>
+    <div class="rsub">1년 {짧은돈(연합)}</div></div>
+</div>"""
+
+    return f"""{경고}<div class="card pad" data-group>{''.join(행)}{합계행}
+  <div class="detail-host"></div>
+</div>
+<div class="check">프로그램은 매달 반복되는 결제를 찾아줄 뿐, 그게 필요한 지출인지는 알 수 없습니다.
+판단 근거와 마지막 결제일을 보고 직접 정해 주세요.</div>"""
 
 
-def 표_전월대비(이번, 지난, 행들):
+def 목록_전월대비(이번, 지난, 행들):
     if not 행들:
-        return '<div class="check">비교할 달이 아직 두 달치가 안 됩니다.</div>'
-    최대 = max(abs(r["차이"]) for r in 행들)
-    tr = []
+        return ('<div class="note"><div class="bar"></div>'
+                '<p>비교할 달이 아직 두 달치가 안 됩니다.</p></div>')
+    행 = []
     for r in 행들:
         d = r["차이"]
-        기호 = "▲" if d > 0 else ("▼" if d < 0 else "-")
-        색 = "color:var(--sub-coral);font-weight:700" if d > 0 else "color:var(--accent)"
-        비율 = "새로 생김" if r["비율"] is None else f"{r['비율']:+.1f}%"
-        if r["이번달"] == 0:
-            비율 = "이번 달 없음"
-        tr.append(f"""<tr data-kind="delta" data-key="{esc(r["카테고리"])}">
-  <td>{esc(r["카테고리"])}</td>
-  <td class="num">{돈(r["지난달"])}</td>
-  <td class="num">{돈(r["이번달"])}</td>
-  <td class="num" style="{색}">{기호} {돈(abs(d))}</td>
-  <td class="num muted-text">{esc(비율)}</td>
-  <td class="bar-cell">{막대(abs(d), 최대, muted=(d < 0))}</td>
-</tr>""")
-    return f"""<table>
-<thead><tr><th>카테고리</th><th class="num">{esc(지난)}</th><th class="num">{esc(이번)}</th>
-<th class="num">차이</th><th class="num">증감률</th><th>　</th></tr></thead>
-<tbody>{''.join(tr)}</tbody>
-</table>
-<div class="check">늘어난 항목은 <span style="color:var(--sub-coral);font-weight:700">▲ 진한 막대</span>,
-줄어든 항목은 <span style="color:var(--text-secondary)">▼ 회색 막대</span>입니다. 색과 기호를 함께 표시했습니다.</div>"""
+        if d > 0:
+            칩, 색 = f'<span class="pill up">▲ {돈(abs(d))}</span>', "var(--up)"
+        elif d < 0:
+            칩, 색 = f'<span class="pill down">▼ {돈(abs(d))}</span>', "var(--brand)"
+        else:
+            칩, 색 = '<span class="pill flat">그대로</span>', "var(--ink3)"
+        비율 = ("이번 달 없음" if r["이번달"] == 0 else
+               ("지난달엔 없던 항목" if r["비율"] is None else f"{r['비율']:+.1f}%"))
+        행.append(f"""<div class="row" data-kind="delta" data-key="{esc(r["카테고리"])}">
+  <div class="rmain">
+    <div class="rtitle"><span class="nm">{esc(r["카테고리"])}</span>{칩}</div>
+    <div class="rmeta">{esc(지난)} {돈(r["지난달"])} → {esc(이번)} {돈(r["이번달"])}</div>
+  </div>
+  <div class="rside"><div class="rval tnum" style="color:{색};font-size:14px">{esc(비율)}</div></div>
+  <div class="chev"></div>
+</div>""")
+    return f"""<div class="card pad" data-group>{''.join(행)}
+  <div class="detail-host"></div>
+</div>
+<div class="check">늘어난 항목은 빨강 ▲, 줄어든 항목은 초록 ▼ 입니다. 색과 기호를 함께 씁니다.</div>"""
 
 
-# ============================================================================
-def 표_구성원(A):
-    최대 = max(A["사람별"].values()) if A["사람별"] else 0
-    총 = A["총지출"]
-    행 = []
-    for 이름 in A["사람들"]:
-        금 = A["사람별"][이름]
-        비중 = 0 if 총 == 0 else 금 / 총 * 100
-        행.append(f"""<tr data-kind="member" data-key="{esc(이름)}">
-  <td>{esc(이름)}</td>
-  <td class="num">{돈(금)}</td>
-  <td class="num">{비중:.1f}%</td>
-  <td class="bar-cell">{막대(금, 최대)}</td>
-</tr>""")
-    합 = sum(A["사람별"].values())
-    맞음 = 합 == 총
-    검산 = (f'<div class="check ok">검산: 구성원 합계 {돈(합)} = 가구 총지출 {돈(총)} ✓</div>'
-            if 맞음 else
-            f'<div class="check bad">검산 불일치: 구성원 합계 {돈(합)} ≠ 가구 총지출 {돈(총)} ✗</div>')
-    return f"""<table>
-<thead><tr><th>구성원</th><th class="num">지출</th><th class="num">비중</th><th>　</th></tr></thead>
-<tbody>{''.join(행)}</tbody>
-</table>{검산}"""
+def 구역_자산(자산):
+    if not 자산["항목"]:
+        return ""
+    분류 = sorted(((k, v) for k, v in 자산["분류별"].items() if k != "부채"), key=lambda kv: -kv[1])
+    색맵 = {k: 자산색.get(k, 회색) for k, _ in 분류}
+    총 = 자산["총자산"]
+
+    묶음 = []
+    for 이름, 금 in 분류:
+        속한 = [x for x in 자산["항목"] if x["분류"] == 이름]
+        줄 = "".join(
+            f'<div class="row static" style="padding-top:8px;padding-bottom:8px">'
+            f'<div class="rmain"><div class="rtitle" style="font-size:13.5px;font-weight:600">'
+            f'{esc(x["세부항목"])}</div>'
+            f'<div class="rmeta">{esc(x["사람"])}{" · " + esc(x["기관"]) if x["기관"] else ""}'
+            f'{" · " + esc(x["비고"]) if x["비고"] else ""}</div></div>'
+            f'<div class="rside"><div class="rval tnum" style="font-size:14px">{돈(x["금액"])}</div></div></div>'
+            for x in 속한)
+        묶음.append(f"""<div class="row static" style="background:#F8FAFB">
+  <div class="swatch" style="background:{색맵[이름]}"></div>
+  <div class="rmain"><div class="rtitle">{esc(이름)}</div>
+    <div class="track"><i style="width:{금/총*100:.1f}%;background:{색맵[이름]}"></i></div></div>
+  <div class="rside"><div class="rval tnum">{짧은돈(금)}</div>
+    <div class="rsub">{금/총*100:.1f}%</div></div>
+</div>{줄}""")
+
+    부채줄 = ""
+    if 자산["부채"]:
+        부채줄 = (f'<div class="check">부채 {돈(자산["부채"])}를 빼면 순자산은 '
+                 f'<b>{돈(자산["순자산"])}</b>입니다.</div>')
+
+    return f"""<div class="card">
+  <div class="donutbox">
+    {도넛(분류, 색맵, 총)}
+    <div style="padding:10px 6px">{''.join(묶음)}</div>
+  </div>
+</div>{부채줄}"""
 
 
-def 표_카테고리(A):
-    항목 = sorted(A["카테고리별"].items(), key=lambda kv: -kv[1])
-    최대 = 항목[0][1] if 항목 else 0
-    총 = A["총지출"]
-    행 = []
-    for 이름, 금 in 항목:
-        비중 = 0 if 총 == 0 else 금 / 총 * 100
-        행.append(f"""<tr data-kind="category" data-key="{esc(이름)}">
-  <td>{esc(이름)}</td>
-  <td class="num">{돈(금)}</td>
-  <td class="num">{비중:.1f}%</td>
-  <td class="bar-cell">{막대(금, 최대)}</td>
-</tr>""")
-    return f"""<table>
-<thead><tr><th>카테고리</th><th class="num">지출</th><th class="num">비중</th><th>　</th></tr></thead>
-<tbody>{''.join(행)}</tbody>
-<tfoot><tr><td>합계</td><td class="num">{돈(총)}</td><td class="num">100.0%</td><td></td></tr></tfoot>
-</table>"""
+def 구역_보험(보험, 가족들):
+    if not 보험["증권"]:
+        return ('<div class="note"><div class="bar"></div><p>보험 증권을 옮겨 적은 파일이 없습니다. '
+                '<b>templates/보험_입력양식.csv</b> 를 채워 <b>보험.csv</b> 로 저장하면 여기에 정리해 드려요.</p></div>')
+
+    순서 = [이름 for 이름 in 가족들] or sorted({s["사람"] for s in 보험["증권"]})
+    줄 = []
+    for 항목 in sorted(보험["보장"], key=lambda k: (k.split("_")[0], k)):
+        사람별 = 보험["보장"][항목]
+        칩 = []
+        for 이름 in 순서:
+            건들 = 사람별.get(이름)
+            if not 건들:
+                칩.append(f'<span class="chip off">{esc(이름.split("_")[0])} 없음</span>')
+                continue
+            금들 = [b["금액"] for b in 건들]
+            if any(g == "무한" for g in 금들):
+                표기 = "무한"
+            else:
+                합 = sum(g for g in 금들 if isinstance(g, int))
+                표기 = 짧은돈(합).replace("약 ", "") if 합 else "가입"
+            겹 = f' ×{len(건들)}' if len(건들) > 1 else ""
+            칩.append(f'<span class="chip">{esc(이름.split("_")[0])} <b>{표기}</b>{겹}</span>')
+        중복표시 = ('<span class="tag warn">중복 보상 안 됨</span>'
+                  if 항목 in 비례보상담보 and any(len(v) > 1 for v in 사람별.values()) else "")
+        줄.append(f"""<div class="row static">
+  <div class="rmain"><div class="rtitle">{esc(항목)}{중복표시}</div>
+    <div class="chips">{''.join(칩)}</div></div>
+</div>""")
+
+    증권줄 = []
+    for s in sorted(보험["증권"], key=lambda x: (-x["월보험료"], x["사람"])):
+        보험료 = 돈(s["월보험료"]) if s["월보험료"] else "출금 기록 없음"
+        세대 = ""
+        if any(항.startswith("실손") for 항, _ in s["보장"]):
+            g = 실손세대(s["계약일"])
+            세대 = f'<span class="tag">{g}</span>' if g else ""
+        증권줄.append(f"""<div class="row static">
+  <div class="rmain"><div class="rtitle">{esc(s["보험사"])} {esc(s["상품명"])}{세대}</div>
+    <div class="rmeta">{esc(s["사람"])} · {esc(s["계약일"])} ~ {esc(s["만기일"])}
+      · 보장 {len(s["보장"])}개{" · " + esc(s["비고"]) if s["비고"] else ""}</div></div>
+  <div class="rside"><div class="rval tnum" style="font-size:14px">{보험료}</div></div>
+</div>""")
+
+    return f"""<div class="card pad">{''.join(줄)}</div>
+<h2 style="margin-top:30px;font-size:15px">가입한 증권 {len(보험["증권"])}건</h2>
+<div class="card pad">{''.join(증권줄)}</div>"""
 
 
-def 표_월별(A):
-    사람들 = A["사람들"]
-    머리 = "".join(f'<th class="num">{esc(p)}</th>' for p in 사람들)
-    행 = []
-    for 월 in A["달들"]:
-        칸 = "".join(f'<td class="num">{돈(A["월사람"].get((월, p), 0))}</td>' for p in 사람들)
-        행.append(f'<tr><td>{esc(월)}</td>{칸}<td class="num">{돈(A["월별"][월])}</td></tr>')
-    return f"""<table>
-<thead><tr><th>월</th>{머리}<th class="num">가구 합계</th></tr></thead>
-<tbody>{''.join(행)}</tbody>
-</table>"""
+def 구역_점검(신호들):
+    if not 신호들:
+        return ""
+    카드 = []
+    for s in 신호들:
+        배지 = ('<span class="tag warn">확인 필요</span>' if s["급"] == "warn"
+                else '<span class="tag">알아두기</span>')
+        출처 = f'<div class="src">근거: {esc(s["출처"])}</div>' if s["출처"] else ""
+        카드.append(f"""<div class="flag">
+  <div class="ft">{s["제목"]}{배지}</div>
+  <div class="fb">{s["본문"]}</div>
+  <div class="fq"><span class="q">상담할 때 이렇게 물어보세요</span>{esc(s["질문"])}</div>
+  {출처}
+</div>""")
+    return f'<div class="flags">{"".join(카드)}</div>'
 
 
 # ============================================================================
 # 상세 보기용 데이터 — 파일 하나로 열리도록 HTML 안에 직접 넣는다
 # (file:// 로 열면 브라우저가 바깥 파일을 못 읽기 때문)
 # ============================================================================
-상세개월한도 = 12   # 자료가 쌓여도 파일이 무거워지지 않게 최근 12개월만 담는다
-
-
 def 상세데이터(거래들, 달들):
     담을달 = set(달들[-상세개월한도:])
     데이터 = [{
-        "d": t["날짜"], "p": t["사람"], "m": t["가맹점"], "a": t["금액"],
+        "d": t["날짜"], "p": t["사람"], "b": t.get("수혜자") or t["사람"],
+        "m": t["가맹점"], "a": t["금액"],
         "c": t["카테고리"], "k": t["구분"], "f": t["원본파일"],
         "x": 1 if t["중복의심"] == "Y" else 0,
     } for t in 거래들 if t["날짜"][:7] in 담을달]
@@ -421,6 +1130,7 @@ JS = """
   function won(n) { return Math.abs(n).toLocaleString('ko-KR') + '원'; }
 
   function pick(kind, key, key2) {
+    if (kind === 'beneficiary') return TX.filter(function (t) { return t.b === key; });
     if (kind === 'member')   return TX.filter(function (t) { return t.p === key; });
     if (kind === 'category') return TX.filter(function (t) { return t.c === key; });
     if (kind === 'fixed')    return TX.filter(function (t) { return t.m === key && t.p === key2; });
@@ -430,58 +1140,61 @@ JS = """
     return [];
   }
 
-  function table(rows, title) {
+  function render(rows, title) {
     rows = rows.slice().sort(function (a, b) { return a.d < b.d ? 1 : -1; });
     var total = 0;
     rows.forEach(function (t) { if (t.k === '지출') total += -t.a; });
     var shown = rows.slice(0, 50);
     var body = shown.map(function (t) {
-      var dup = t.x ? '<span class="dup-tag">중복 의심</span>' : '';
-      var amt = t.k === '수입' ? '+' + won(t.a) : won(t.a);
-      return '<tr><td>' + t.d + '</td><td>' + t.m + dup + '</td><td>' + t.c +
-             '</td><td>' + t.p + '</td><td style="text-align:right">' + amt +
-             '</td><td class="muted-text">' + t.f + '</td></tr>';
+      var dup = t.x ? '<span class="tag warn">중복 의심</span>' : '';
+      var isIn = t.k === '수입';
+      return '<div class="dtl-row">' +
+        '<div class="dtl-main">' +
+          '<div class="dtl-t">' + t.m + dup + '</div>' +
+          '<div class="dtl-s">' + t.d + ' · ' + t.c + ' · ' +
+            (t.b && t.b !== t.p ? t.p + ' 결제 → ' + t.b + ' 몫' : t.p) +
+            ' · ' + t.f + '</div>' +
+        '</div>' +
+        '<div class="dtl-a' + (isIn ? ' in' : '') + '">' + (isIn ? '+' : '') + won(t.a) + '</div>' +
+      '</div>';
     }).join('');
     var note = rows.length > shown.length
-      ? '<div class="detail-note">' + rows.length + '건 중 최근 50건만 보여드려요. 전체는 out/거래통합.csv 에 있습니다.</div>'
+      ? '<div class="dtl-note">' + rows.length + '건 중 최근 50건만 보여드려요. 전체는 out/거래통합.csv 에 있습니다.</div>'
       : '';
-    return '<div class="detail-title">' + title + ' — ' + rows.length + '건, 지출 합계 ' +
-           total.toLocaleString('ko-KR') + '원</div>' +
-           '<table class="detail-table"><thead><tr><th>날짜</th><th>가맹점</th><th>카테고리</th>' +
-           '<th>사람</th><th style="text-align:right">금액</th><th>원본</th></tr></thead>' +
-           '<tbody>' + body + '</tbody></table>' + note;
+    return '<div class="dtl-head"><span>' + title + '</span>' +
+           '<span>' + rows.length + '건 · 지출 ' + total.toLocaleString('ko-KR') + '원</span></div>' +
+           body + note;
   }
 
-  function close(tr) {
-    var next = tr.nextElementSibling;
-    if (next && next.classList.contains('detail')) next.remove();
-    tr.classList.remove('open');
+  function title(d) {
+    if (d.kind === 'fixed') return d.key + ' (' + d.key2 + ') 결제 이력';
+    if (d.kind === 'delta') return d.key + ' · ' + MONTHS.prev + ' ~ ' + MONTHS.cur;
+    return d.key;
   }
 
-  document.querySelectorAll('tr[data-kind]').forEach(function (tr) {
-    tr.addEventListener('click', function () {
-      var wasOpen = tr.classList.contains('open');
-      // 같은 표 안에서 열려 있던 다른 상세는 닫는다
-      tr.closest('table').querySelectorAll('tr.open').forEach(close);
+  document.querySelectorAll('.row[data-kind]').forEach(function (el) {
+    el.addEventListener('click', function () {
+      var group = el.closest('[data-group]');
+      var host = group.querySelector('.detail-host');
+      var wasOpen = el.classList.contains('open');
+
+      group.querySelectorAll('.row.open').forEach(function (o) { o.classList.remove('open'); });
+      host.innerHTML = '';
+      host.style.display = 'none';
       if (wasOpen) return;
 
-      var d = tr.dataset;
-      var rows = pick(d.kind, d.key, d.key2);
-      var title = d.kind === 'fixed' ? d.key + ' (' + d.key2 + ') 결제 이력'
-                : d.kind === 'delta' ? d.key + ' — ' + MONTHS.prev + ' · ' + MONTHS.cur
-                : d.key;
-      var detail = document.createElement('tr');
-      detail.className = 'detail';
-      detail.innerHTML = '<td colspan="' + tr.children.length + '">' + table(rows, title) + '</td>';
-      tr.after(detail);
-      tr.classList.add('open');
+      var d = el.dataset;
+      host.innerHTML = render(pick(d.kind, d.key, d.key2), title(d));
+      host.style.display = 'block';
+      el.classList.add('open');
     });
   });
 })();
 """
 
 
-def html만들기(A, 거래들, 입력파일):
+# ============================================================================
+def html만들기(A, 거래들, 입력파일, 자산, 보험, 가족들):
     파일수 = len({t["원본파일"].split(":")[0] for t in 거래들})
     중복 = [t for t in 거래들 if t["중복의심"] == "Y"]
     중복금액 = sum(abs(t["금액"]) for t in 중복) // 2
@@ -489,76 +1202,95 @@ def html만들기(A, 거래들, 입력파일):
     고정비들, 관측개월 = 고정비찾기(A)
     중복구독 = 중복구독찾기(고정비들)
     고정비월합 = sum(f["월금액"] for f in 고정비들)
-    고정비연합 = sum(f["연환산"] for f in 고정비들)   # 표 합계와 어긋나지 않게 같은 값을 쓴다
+    고정비연합 = sum(f["연환산"] for f in 고정비들)   # 목록 합계와 어긋나지 않게 같은 값을 쓴다
     이번, 지난, 변화 = 전월대비(A)
 
-    기간 = f'{A["달들"][0]} ~ {A["달들"][-1]}' if A["달들"] else "-"
+    색맵 = {}
+    i = 0
+    for p in A["수혜자들"] + A["사람들"]:
+        if p in 색맵:
+            continue
+        색맵[p] = "#7C8BA1" if p == "가족공통" else 구성원색[i % len(구성원색)]
+        i += p != "가족공통"
     생성 = dt.datetime.now().strftime("%Y-%m-%d %H:%M")
+
+    월지출 = A["총지출"] // max(1, len(A["달들"]))
+    점검 = 보험점검(보험, 가족들, 고정비들, 월지출) if 보험["증권"] else []
+    경고수 = sum(1 for s in 점검 if s["급"] == "warn")
 
     중복안내 = ""
     if 중복:
-        중복안내 = f"""<div class="callout">
-  <p><strong>같은 거래가 두 번 잡힌 것으로 보이는 게 {len(중복)//2}쌍 있습니다</strong>
-  (약 {돈(중복금액)}). 가계부 앱과 카드사 파일에 같은 결제가 함께 들어 있을 때 생깁니다.
-  자동으로 지우지 않았으니, 위 금액만큼 부풀어 있을 수 있다는 점을 감안해 주세요.</p>
+        중복안내 = f"""<div class="note"><div class="bar"></div>
+  <p><strong>같은 거래가 두 번 잡힌 것으로 보이는 게 {len(중복)//2}쌍 있어요</strong> (약 {돈(중복금액)}).
+  가계부 앱과 카드사 파일에 같은 결제가 함께 들어 있을 때 생깁니다.
+  자동으로 지우지 않았으니 그만큼 부풀어 있을 수 있다는 점을 감안해 주세요.</p>
 </div>"""
 
     return f"""<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
 <title>우리집 가계 점검</title>
 <style>{CSS}</style>
 </head>
 <body>
-<div class="wrap">
+<div class="app">
 
-  <h1>우리집 가계 점검</h1>
-  <div class="sub">{esc(기간)} · 파일 {파일수}개 · 거래 {len(거래들)}건 · {esc(생성)} 기준</div>
-
-  <div class="kpis">
-    <div class="kpi"><div class="label">가구 총지출</div>
-      <div class="value">{돈(A["총지출"])}</div>
-      <div class="note">이체·카드대금 제외</div></div>
-    <div class="kpi"><div class="label">가구 총수입</div>
-      <div class="value">{돈(A["총수입"])}</div>
-      <div class="note">확인된 입금만</div></div>
-    <div class="kpi"><div class="label">매달 나가는 고정비</div>
-      <div class="value">{돈(고정비월합)}</div>
-      <div class="note">1년이면 {돈(고정비연합)}</div></div>
-    <div class="kpi"><div class="label">중복 의심</div>
-      <div class="value">{len(중복)//2}쌍</div>
-      <div class="note">자동으로 지우지 않음</div></div>
+  <div class="top">
+    <h1>우리집 가계</h1>
+    <div class="period">파일 {파일수}개 · 거래 {len(거래들)}건 · {esc(생성)} 기준</div>
   </div>
 
+  {히어로(A, 이번, 지난)}
+  {통계카드(A, 자산, 고정비월합, 고정비연합, len(중복)//2 + len(중복구독) + 경고수)}
   {중복안내}
 
-  <p class="hint">표에서 <strong>▸ 표시가 있는 줄을 누르면</strong> 그 안에 어떤 거래가 들어 있는지 펼쳐집니다.</p>
+  <h2>누구를 위해 썼나</h2>
+  <p class="lead">돈을 낸 사람이 아니라 <b>그 돈이 쓰인 사람</b> 기준입니다.
+  아이 학원비가 엄마 카드에서 나가도 아이 몫으로 셉니다. 눌러서 거래를 볼 수 있어요.</p>
+  {목록_수혜자(A, 색맵)}
 
-  <h2>구성원별 지출</h2>
-  {표_구성원(A)}
+  <h2 style="font-size:15px;margin-top:28px">누구 카드에서 나갔나</h2>
+  <p class="lead">위와 숫자가 다른 것이 정상입니다. 한 사람이 가족 몫을 몰아서 결제하기 때문이에요.</p>
+  {목록_결제자(A)}
 
-  <h2>카테고리별 지출</h2>
-  {표_카테고리(A)}
-
-  <h2>매달 빠져나가는 고정비</h2>
-  {표_고정비(고정비들, 관측개월, 중복구독)}
-
-  <h2>지난달과 무엇이 달라졌나 ({esc(지난 or "-")} → {esc(이번 or "-")})</h2>
-  {표_전월대비(이번, 지난, 변화)}
+  <h2>어디에 썼나</h2>
+  <p class="lead">카테고리별 지출을 큰 것부터 정렬했습니다.</p>
+  {구역_카테고리(A)}
 
   <h2>월별 추이</h2>
-  {표_월별(A)}
+  <p class="lead">막대 한 칸이 한 달이고, 색은 <b>누구 몫이었는지</b>를 나타냅니다.</p>
+  {차트_월별(A, 색맵, 이번)}
+
+  <h2>매달 빠져나가는 고정비</h2>
+  <p class="lead">매달 빠짐없이 · 비슷한 금액 · 비슷한 날짜에 결제된 것만 골랐습니다.</p>
+  {목록_고정비(고정비들, 관측개월, 중복구독)}
+
+  <h2>지난달과 달라진 것</h2>
+  <p class="lead">{esc(지난 or "-")} 와 {esc(이번 or "-")} 를 카테고리별로 비교했습니다.</p>
+  {목록_전월대비(이번, 지난, 변화)}
+
+  {f'''<h2>자산 현황</h2>
+  <p class="lead">총 {돈(자산["총자산"])} · 직접 적어 넣은 자산 {len(자산["항목"])}건 기준입니다.</p>
+  {구역_자산(자산)}''' if 자산["항목"] else ""}
+
+  {f'''<h2>보험 점검</h2>
+  <p class="lead">가족이 어떤 보장을 얼마나 가지고 있는지, 누가 비어 있는지 한 표에 모았습니다.</p>
+  {구역_보험(보험, 가족들)}''' if 보험["증권"] else ""}
+
+  {f'''<h2>확인해볼 것 {len(점검)}가지</h2>
+  <p class="lead">사실만 짚고, 상담할 때 그대로 물어볼 수 있는 문장을 함께 적었습니다.
+  이 도구는 어떤 보험을 들거나 해지하라고 권하지 않습니다.</p>
+  {구역_점검(점검)}''' if 점검 else ""}
 
   <div class="footer">
-    <strong>이 파일에는 실제 거래 내역이 들어 있습니다.</strong>
-    메신저나 메일로 공유하지 마세요.<br>
-    <span class="muted-text">
-      이 도구는 숫자를 모아 보여주는 정리 도구이며, 투자나 보험 가입·해지를 권유하지 않습니다.
-      판단은 본인이 하시고, 필요하면 자격을 갖춘 전문가와 상담하세요.<br>
-      원본: {esc(입력파일)}
-    </span>
+    <span class="warn">이 파일에는 실제 거래 내역이 들어 있습니다.</span>
+    메신저나 메일로 공유하지 마세요.<br><br>
+    이 도구는 숫자를 모아 보여주는 정리 도구이며, 투자나 보험 가입·해지를 권유하지 않습니다.
+    판단은 본인이 하시고, 필요하면 자격을 갖춘 전문가와 상담하세요.<br>
+    원본: {esc(입력파일)}
   </div>
 
 </div>
@@ -576,6 +1308,8 @@ def main():
     ap = argparse.ArgumentParser(description="거래표를 HTML 대시보드로 만듭니다.")
     ap.add_argument("--input", default="out/거래통합.csv")
     ap.add_argument("--output", default="out/우리집_점검.html")
+    ap.add_argument("--data", default="data/sample",
+                    help="자산.csv · 보험.csv · 가족.csv 가 들어 있는 폴더 (기본: data/sample)")
     args = ap.parse_args()
 
     입력 = Path(args.input)
@@ -590,9 +1324,17 @@ def main():
         return 3
 
     A = 집계(거래들)
+
+    자료 = Path(args.data)
+    자산 = 자산집계(표읽기(자료 / "자산.csv"))
+    보험 = 보험집계(표읽기(자료 / "보험.csv"))
+    가족행 = 표읽기(자료 / "가족.csv")
+    가족들 = [(r.get("사람") or "").strip() for r in 가족행 if (r.get("사람") or "").strip()] \
+        or A["사람들"]
+
     출력 = Path(args.output)
     출력.parent.mkdir(parents=True, exist_ok=True)
-    출력.write_text(html만들기(A, 거래들, 입력.name), encoding="utf-8")
+    출력.write_text(html만들기(A, 거래들, 입력.name, 자산, 보험, 가족들), encoding="utf-8")
 
     print(f"기간 {A['달들'][0]} ~ {A['달들'][-1]} / 거래 {len(거래들)}건")
     print(f"가구 총지출 {A['총지출']:,}원 / 구성원 {len(A['사람들'])}명")
@@ -603,9 +1345,23 @@ def main():
     print(f"\n고정비 {len(고정비들)}건 / 월 {sum(f['월금액'] for f in 고정비들):,}원 "
           f"/ 1년 {sum(f['연환산'] for f in 고정비들):,}원")
     for f in 고정비들:
-        print(f"  {f['가맹점']:<22} {f['사람']:<12} 월 {f['월금액']:>9,}원  [{f['확신']}] {f['근거']}")
+        print(f"  {f['가맹점']:<22} {f['사람']:<12} 월 {f['월금액']:>9,}원  [{f['확신']}]")
     for 이름, fs in 중복구독찾기(고정비들).items():
         print(f"  ! 중복 구독: {이름} — {', '.join(f['사람'] for f in fs)}")
+
+    if 자산["항목"]:
+        print(f"\n자산 {돈(자산['총자산'])}" + (f" / 부채 {돈(자산['부채'])} / 순자산 {돈(자산['순자산'])}"
+                                          if 자산["부채"] else ""))
+        for k, v in sorted(자산["분류별"].items(), key=lambda kv: -kv[1]):
+            print(f"  {k:<8} {v:>15,}원  ({v/자산['총자산']*100:.1f}%)")
+
+    if 보험["증권"]:
+        점검 = 보험점검(보험, 가족들, 고정비들, A["총지출"] // max(1, len(A["달들"])))
+        print(f"\n보험 증권 {len(보험['증권'])}건 / 확인해볼 것 {len(점검)}가지")
+        for s in 점검:
+            표 = "!" if s["급"] == "warn" else "·"
+            print(f"  {표} {s['제목']}")
+
     print(f"\n저장: {출력}")
     return 0
 
