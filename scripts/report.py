@@ -133,6 +133,19 @@ body {
   font-variant-numeric: tabular-nums;
 }
 .gapbox { padding: 12px 16px; }
+
+/* ---------- 유형 펼치기 (자산) ---------- */
+.acc-body[hidden] { display: none; }
+.acc-body {
+  background: #F7F9FB; border-radius: var(--r-sm);
+  margin: 2px 0 8px; padding: 4px 0;
+}
+.acc-body .aitem { padding: 10px 16px 10px 18px; }
+.acc-body .aitem .rtitle { font-size: 13.5px; font-weight: 600; }
+.acc-body .aitem .rval { font-size: 14px; }
+.row[data-acc] { cursor: pointer; }
+.row[data-acc]:hover { background: #F6F8FA; }
+.row[data-acc].open { background: var(--brand-soft); }
 .gapbox .t { font-size: 12px; color: var(--ink3); font-weight: 700; margin-bottom: 7px; }
 
 /* ---------- 더 보기 ---------- */
@@ -419,6 +432,7 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
   .row { padding: 11px 13px; gap: 10px; }
   .ava { width: 34px; height: 34px; border-radius: 10px; font-size: 14px; }
   .chev { display: none; }            /* 좁은 화면에서는 이름과 금액에 자리를 준다 */
+  .row[data-acc] .chev { display: block; }   /* 단, 펼쳐지는 줄은 표시를 남긴다 */
   .rmeta { font-size: 11.5px; }
   .rside .rsub { font-size: 11px; }
   .rtitle { font-size: 14.5px; }
@@ -1007,7 +1021,7 @@ def 목록_결제자(A):
 </div>"""
 
 
-def 도넛(항목들, 색맵, 총):
+def 도넛(항목들, 색맵, 총, 가운데="총지출"):
     """항목들 = [(이름, 금액)]. 회전은 CSS transform 으로 처리한다."""
     r, 두께 = 62, 22
     C = 2 * math.pi * r
@@ -1025,7 +1039,7 @@ def 도넛(항목들, 색맵, 총):
     <circle cx="80" cy="80" r="{r}" fill="none" stroke="#EDF1F5" stroke-width="{두께}"/>
     {''.join(조각)}
   </svg>
-  <div class="mid"><div class="t">총지출</div><div class="n tnum">{짧은돈(총)}</div></div>
+  <div class="mid"><div class="t">{가운데}</div><div class="n tnum">{짧은돈(총)}</div></div>
 </div>"""
 
 
@@ -1177,6 +1191,8 @@ def 목록_전월대비(이번, 지난, 행들):
 
 
 def 구역_자산(자산):
+    """유형별로 묶고 소계를 보여준다. 줄을 누르면 그 안의 항목이 펼쳐진다.
+    (자산 관리 앱들이 공통으로 쓰는 방식 — 현금·투자·부동산·대출로 묶고 그룹마다 소계)"""
     if not 자산["항목"]:
         return ""
     분류 = sorted(((k, v) for k, v in 자산["분류별"].items() if k != "부채"), key=lambda kv: -kv[1])
@@ -1185,22 +1201,32 @@ def 구역_자산(자산):
 
     묶음 = []
     for 이름, 금 in 분류:
-        속한 = [x for x in 자산["항목"] if x["분류"] == 이름]
-        줄 = "".join(
-            f'<div class="row static" style="padding-top:8px;padding-bottom:8px">'
-            f'<div class="rmain"><div class="rtitle" style="font-size:13.5px;font-weight:600">'
-            f'{esc(x["세부항목"])}</div>'
-            f'<div class="rmeta">{esc(x["사람"])}{" · " + esc(x["기관"]) if x["기관"] else ""}'
-            f'{" · " + esc(x["비고"]) if x["비고"] else ""}</div></div>'
-            f'<div class="rside"><div class="rval tnum" style="font-size:14px">{돈(x["금액"])}</div></div></div>'
+        속한 = sorted((x for x in 자산["항목"] if x["분류"] == 이름), key=lambda x: -x["금액"])
+        최대 = 속한[0]["금액"] if 속한 else 1
+        항목줄 = "".join(
+            f'<div class="row static aitem">'
+            f'<div class="rmain">'
+            f'<div class="rtitle"><span class="nm">{esc(x["세부항목"])}</span></div>'
+            f'<div class="rmeta">{esc(x["사람"].split("_")[0])}'
+            f'{" · " + esc(x["기관"]) if x["기관"] else ""}'
+            f'{" · " + esc(x["비고"]) if x["비고"] else ""}</div>'
+            f'<div class="track"><i style="width:{x["금액"]/최대*100:.1f}%;'
+            f'background:{색맵[이름]};opacity:.55"></i></div></div>'
+            f'<div class="rside"><div class="rval tnum">{돈(x["금액"])}</div>'
+            f'<div class="rsub">{x["금액"]/금*100:.0f}%</div></div></div>'
             for x in 속한)
-        묶음.append(f"""<div class="row static" style="background:#F8FAFB">
+        묶음.append(f"""<div class="row" data-acc>
   <div class="swatch" style="background:{색맵[이름]}"></div>
-  <div class="rmain"><div class="rtitle">{esc(이름)}</div>
-    <div class="track"><i style="width:{금/총*100:.1f}%;background:{색맵[이름]}"></i></div></div>
-  <div class="rside"><div class="rval tnum">{짧은돈(금)}</div>
+  <div class="rmain">
+    <div class="rtitle"><span class="nm">{esc(이름)}</span>
+      <span class="tag">{len(속한)}건</span></div>
+    <div class="track"><i style="width:{금/총*100:.1f}%;background:{색맵[이름]}"></i></div>
+  </div>
+  <div class="rside"><div class="rval tnum">{짧은돈(금).replace("약 ", "")}</div>
     <div class="rsub">{금/총*100:.1f}%</div></div>
-</div>{줄}""")
+  <div class="chev"></div>
+</div>
+<div class="acc-body" hidden>{항목줄}</div>""")
 
     부채줄 = ""
     if 자산["부채"]:
@@ -1209,10 +1235,11 @@ def 구역_자산(자산):
 
     return f"""<div class="card">
   <div class="donutbox">
-    {도넛(분류, 색맵, 총)}
-    <div style="padding:10px 6px">{''.join(묶음)}</div>
+    {도넛(분류, 색맵, 총, "총자산")}
+    <div class="pad" style="padding:8px 6px">{''.join(묶음)}</div>
   </div>
-</div>{부채줄}"""
+</div>
+<div class="check">유형을 누르면 그 안에 무엇이 들어 있는지 펼쳐집니다.</div>{부채줄}"""
 
 
 def 구역_보험(보험, 가족들):
@@ -1558,6 +1585,16 @@ JS = """
     var 저장 = sessionStorage.getItem('ff-tab');
     if (저장 && document.getElementById(저장)) 탭열기(저장);
   } catch (e) {}
+
+  // ── 유형 펼치기 (자산) ────────────────────────────────────────────────
+  document.addEventListener('click', function (e) {
+    var r = e.target.closest ? e.target.closest('.row[data-acc]') : null;
+    if (!r) return;
+    var 몸 = r.nextElementSibling;
+    if (!몸 || !몸.classList.contains('acc-body')) return;
+    몸.hidden = !몸.hidden;
+    r.classList.toggle('open', !몸.hidden);
+  });
 
   // ── 사람 고르기 (보험) ────────────────────────────────────────────────
   document.addEventListener('click', function (e) {
