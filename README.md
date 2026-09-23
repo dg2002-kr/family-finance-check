@@ -194,13 +194,16 @@ python -X utf8 scripts/report.py --data data/private
 
 ### 켜는 법
 
-[AI Studio](https://aistudio.google.com/apikey)에서 키를 발급받아 둘 중 하나로 넣으세요. **키는 저장소에 넣지 마세요.**
+[AI Studio](https://aistudio.google.com/apikey)에서 키를 발급받아 이렇게 넣으세요.
 
 ```bash
-setx GEMINI_API_KEY "내키"
+python -X utf8 scripts/set_key.py
 ```
 
-또는 `data/private/gemini.key` 파일에 키만 한 줄로 저장합니다. (`.gitignore`가 `*.key`를 막습니다)
+키가 화면에 찍히지 않고 `data/private/gemini.key` 에만 저장됩니다. (`.gitignore`가 `*.key`를 막습니다)
+환경변수 `GEMINI_API_KEY` 를 써도 됩니다.
+
+> **키를 채팅·문서·커밋에 붙여넣지 마세요.** 한 번이라도 노출된 키는 새로 발급받는 것이 맞습니다.
 
 ```bash
 python -X utf8 scripts/advise.py --dry     # 무엇을 보내는지 먼저 확인
