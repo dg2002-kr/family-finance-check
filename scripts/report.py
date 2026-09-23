@@ -212,30 +212,33 @@ body {
 .hrow:last-of-type { border-bottom: none; }
 .hmain { flex: 1; min-width: 0; }
 .hname { font-size: 13.5px; font-weight: 700; }
-.hsub { font-size: 11.5px; color: var(--ink3); margin-top: 2px; }
+.hsub { font-size: 12px; color: var(--ink2); margin-top: 3px; line-height: 1.5; }
 .hside { text-align: right; flex: none; }
 .hval { font-size: 13.5px; font-weight: 800; }
 .hpl { font-size: 11.5px; font-weight: 700; margin-top: 1px; }
-.hnote { font-size: 11px; color: var(--ink3); margin-top: 9px; line-height: 1.5; }
+.hnote { font-size: 11.5px; color: var(--ink2); margin-top: 9px; line-height: 1.6; }
 
 /* 회사 살림 — 공시 재무 */
 .finbox { margin: 4px 0 8px; padding: 9px 0 0; border-top: 1px dotted var(--line); }
 .fins { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 6px; }
 .fin { background: #F6F8FA; border-radius: var(--r-sm); padding: 7px 9px; }
-.fin .fk { font-size: 10px; color: var(--ink3); font-weight: 700; white-space: nowrap; }
+.fin .fk { font-size: 10.5px; color: var(--ink2); font-weight: 700; white-space: nowrap; }
 .fin .fv { font-size: 12.5px; font-weight: 800; margin-top: 1px; letter-spacing: -0.02em;
            font-variant-numeric: tabular-nums; }
 
 /* 오늘의 소식 — 키워드 단추, 누르면 제목과 원문 링크 */
 .news { margin: 2px 0 10px; padding: 9px 0 0; border-top: 1px dotted var(--line); }
-.nlabel { font-size: 10.5px; color: var(--ink3); font-weight: 700; margin-bottom: 6px; }
-.nchips { display: flex; flex-wrap: wrap; gap: 5px; }
+.nlabel { font-size: 11.5px; color: var(--ink2); font-weight: 800; margin-bottom: 8px; }
+.nchips { display: flex; flex-direction: column; gap: 6px; }
 .nchip {
-  border: 1px solid var(--line); background: var(--surface); color: var(--ink2);
-  font-family: inherit; font-size: 11.5px; font-weight: 700; cursor: pointer;
-  padding: 4px 10px; border-radius: 999px; white-space: nowrap;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+  padding: 9px 13px; border-radius: var(--r-sm); text-align: left;
+  line-height: 1.45; word-break: keep-all;
   transition: background .13s, border-color .13s, color .13s;
 }
+.nchip .nsrc { display: block; font-size: 10.5px; color: var(--ink3); font-weight: 600; margin-top: 3px; }
+.nchip[aria-pressed="true"] .nsrc { color: #C9D2DC; }
 .nchip:hover { border-color: var(--ink3); color: var(--ink); }
 .nchip[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
 .nbox {
@@ -358,6 +361,32 @@ body {
 .stat .k { min-height: 2.6em; }
 .stat .s { font-size: 12px; color: var(--ink3); }
 
+/* ---------- 번 돈 − 쓴 돈 = 남은 돈 ---------- */
+.flow {
+  display: grid; grid-template-columns: 1fr auto 1fr auto 1fr;
+  align-items: center; gap: 6px;
+  background: var(--surface); border-radius: var(--r-md);
+  padding: 18px 16px; box-shadow: var(--sh);
+}
+.fcell { text-align: center; min-width: 0; }
+.fcell.key { background: var(--brand-soft); border-radius: var(--r-sm); padding: 8px 6px; margin: -8px -2px; }
+.fk { font-size: 12px; color: var(--ink2); font-weight: 700; }
+.fv {
+  font-size: 19px; font-weight: 800; letter-spacing: -0.04em; margin: 4px 0 2px;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.fv.in { color: var(--ink); }
+.fs { font-size: 11.5px; color: var(--ink3); }
+.fop { font-size: 17px; font-weight: 800; color: var(--ink3); padding: 0 2px; }
+.tab-lead {
+  font-size: 13px; color: var(--ink2); line-height: 1.6;
+  margin: 0 0 18px; padding: 11px 14px;
+  background: var(--surface); border-radius: var(--r-sm); box-shadow: var(--sh);
+}
+.tab-lead b { color: var(--ink); }
+h3.sub-h { font-size: 15px; font-weight: 800; letter-spacing: -0.03em; margin: 30px 0 3px; }
+
 /* ---------- 섹션 ---------- */
 h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 3px; }
 .lead { color: var(--ink3); font-size: 13px; margin: 0 0 14px; }
@@ -461,7 +490,20 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
 }
 
 /* ---------- 월별 막대 ---------- */
-.bars { display: flex; align-items: flex-end; gap: 14px; padding: 22px 20px 14px; }
+.plot { position: relative; }
+.yax { position: absolute; left: 0; right: 0; top: 26px; height: 170px; pointer-events: none; }
+.yax i { position: absolute; left: 62px; right: 18px; height: 1px; background: var(--line); }
+.yax i.zero { background: #DCE2E8; bottom: 0; }
+.yax b {
+  position: absolute; left: 0; width: 54px; text-align: right;
+  font-size: 10.5px; color: var(--ink3); font-weight: 600;
+  transform: translateY(50%); font-variant-numeric: tabular-nums; letter-spacing: -0.03em;
+}
+.yax b.zero { bottom: 0; }
+.bars { display: flex; align-items: flex-end; gap: 14px; padding: 22px 18px 14px 68px; position: relative; }
+.bcol .sum { display: none; }
+.bcol.now .sum, .bcol.open .sum { display: block; }
+.bars:has(.bcol.open) .bcol.now:not(.open) .sum { display: none; }
 .bcol { flex: 1 1 0; min-width: 0; text-align: center; }
 .bcol .area { height: 170px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; }
 .bcol .sum {
@@ -657,6 +699,13 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
    ========================================================================== */
 @media (max-width: 720px) {
   body { padding: 22px 16px 60px; }
+  .flow { grid-template-columns: 1fr; gap: 2px; padding: 14px; }
+  .fcell { display: flex; align-items: baseline; justify-content: space-between; text-align: left; gap: 10px; }
+  .fcell.key { margin: 4px 0 0; padding: 10px 12px; }
+  .fk { flex: 0 0 auto; }
+  .fv { font-size: 17px; margin: 0; }
+  .fs { flex: 1 1 100%; text-align: right; margin-top: -2px; }
+  .fop { display: none; }
   .hero { padding: 22px 20px 18px; border-radius: var(--r-md); }
   .hero .v { font-size: 33px; }
   .hero .v span { font-size: 19px; }
@@ -686,11 +735,13 @@ h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin: 36px 0 
   .fact { padding: 8px 9px; }
   .fv { font-size: 12.5px; }
   /* 좁은 화면에서는 달이 12칸이라 글자가 겹친다. 연도와 금액은 접는다 */
-  .bars { gap: 5px; padding: 16px 12px 10px; }
+  .bars { gap: 5px; padding: 16px 10px 10px 44px; }
+  .yax { top: 18px; height: 132px; }
+  .yax i { left: 40px; right: 10px; }
+  .yax b { width: 34px; font-size: 9.5px; }
   .bcol { padding-top: 2px; }
   .bcol .area { height: 132px; }
-  .bcol .sum { display: none; }
-  .bcol.now .sum, .bcol.open .sum { display: block; font-size: 10.5px; }
+  .bcol.now .sum, .bcol.open .sum { font-size: 10.5px; }
   /* 하나를 펼치면 그 달 금액만 보여 라벨이 겹치지 않게 한다 */
   .bars:has(.bcol.open) .bcol.now:not(.open) .sum { display: none; }
   .bcol .mon { font-size: 10.5px; margin-top: 7px; }
@@ -794,6 +845,37 @@ def 막대금액(n) -> str:
     if n >= 10_000:
         return f"{n//10_000:,}만"
     return f"{n:,}"
+
+
+def 눈금값(최대, 개수=4):
+    """0 위로 올릴 눈금 금액을 보기 좋은 단위로 고른다. 17,169,000 → 500만·1,000만·1,500만"""
+    if 최대 <= 0:
+        return []
+    거친 = 최대 / 개수
+    자리 = 10 ** math.floor(math.log10(거친))
+    간격 = 자리 * 10
+    for c in (1, 2, 2.5, 5, 10):
+        if c * 자리 >= 거친:
+            간격 = c * 자리
+            break
+    값, v = [], 간격
+    while v <= 최대 * 1.001:
+        값.append(int(round(v)))
+        v += 간격
+    return 값
+
+
+def 눈금선(눈금, 최대):
+    """막대 뒤에 가로선을 깔고 왼쪽에 금액을 적는다.
+
+    막대마다 숫자를 얹으면 24칸에서 전부 겹친다. 축으로 옮기면 한 번만 읽으면 된다.
+    """
+    값들 = 눈금값(최대)
+    if not 값들 or 눈금 <= 0:
+        return ""
+    칸 = "".join(f'<i style="bottom:{v / 눈금 * 100:.2f}%"></i>'
+                f'<b style="bottom:{v / 눈금 * 100:.2f}%">{막대금액(v)}</b>' for v in 값들)
+    return f'<div class="yax"><i class="zero"></i><b class="zero">0</b>{칸}</div>'
 
 
 def esc(s) -> str:
@@ -1342,6 +1424,8 @@ def 연도비교(A):
 
 def 통계카드(A, 자산, 고정비월합, 고정비연합, 확인):
     개월 = max(1, len(A["달들"]))
+    남은돈 = A["총수입"] - A["총지출"]
+    남은비율 = 남은돈 / A["총수입"] * 100 if A["총수입"] else 0
     자산카드 = ""
     if 자산["총자산"]:
         자산카드 = f"""<div class="stat"><div class="k">총자산</div>
@@ -1352,14 +1436,118 @@ def 통계카드(A, 자산, 고정비월합, 고정비연합, 확인):
   <div class="stat"><div class="k">매달 빠져나가는 고정비</div>
     <div class="v tnum">{돈(고정비월합)}</div>
     <div class="s">1년이면 {짧은돈(고정비연합)}</div></div>
-  <div class="stat"><div class="k">월평균 수입</div>
-    <div class="v tnum">{짧은돈(A["총수입"] / 개월)}</div>
-    <div class="s">{개월}개월 평균</div></div>
+  <div class="stat"><div class="k">쓰고 남은 돈</div>
+    <div class="v tnum" style="color:{'var(--brand-deep)' if 남은돈 > 0 else 'var(--up)'}">
+      {'' if 남은돈 > 0 else '−'}{짧은돈(abs(남은돈))}</div>
+    <div class="s">월평균 수입 {짧은돈(A["총수입"] / 개월)} 중 {남은비율:.0f}%</div></div>
   <div class="stat"><div class="k">확인할 항목</div>
     <div class="v tnum" style="color:{'var(--up)' if 확인 else 'var(--ink)'}">{확인}건</div>
     <div class="s">아래에서 하나씩 짚어드려요</div></div>
   {다음달예상(A, 고정비월합)}
 </div>"""
+
+
+def 구역_수입(A, 색맵):
+    """번 돈 · 쓴 돈 · 남은 돈. 지금까지 대시보드에 없던 반쪽이다.
+
+    지출만 보면 '많이 썼다/적게 썼다'밖에 알 수 없다.
+    번 돈과 나란히 놓아야 그게 감당할 만한 소비였는지가 보인다.
+    """
+    수입들 = A["수입"]
+    if not 수입들:
+        return ('<div class="note"><div class="bar"></div><p>수입으로 잡힌 거래가 없습니다. '
+                '급여가 들어오는 <b>은행 거래내역</b>을 폴더에 넣으면 여기에 표시됩니다.</p></div>')
+
+    개월 = max(1, len(A["달들"]))
+    번돈, 쓴돈 = A["총수입"], A["총지출"]
+    남은돈 = 번돈 - 쓴돈
+
+    사람별, 월별 = {}, {}
+    for x in 수입들:
+        사람별[x["사람"]] = 사람별.get(x["사람"], 0) + x["금액"]
+        월별[x["날짜"][:7]] = 월별.get(x["날짜"][:7], 0) + x["금액"]
+
+    비율 = 남은돈 / 번돈 * 100 if 번돈 else 0
+    좋음 = 남은돈 > 0
+    흐름 = f"""<div class="flow">
+  <div class="fcell"><div class="fk">번 돈</div>
+    <div class="fv in tnum">{돈(번돈)}</div>
+    <div class="fs">월평균 {짧은돈(번돈 / 개월)}</div></div>
+  <div class="fop">−</div>
+  <div class="fcell"><div class="fk">쓴 돈</div>
+    <div class="fv tnum">{돈(쓴돈)}</div>
+    <div class="fs">월평균 {짧은돈(쓴돈 / 개월)}</div></div>
+  <div class="fop">=</div>
+  <div class="fcell key"><div class="fk">남은 돈</div>
+    <div class="fv tnum" style="color:{'var(--brand-deep)' if 좋음 else 'var(--up)'}">
+      {'' if 좋음 else '−'}{돈(남은돈)}</div>
+    <div class="fs">번 돈의 {비율:.0f}% · 월평균 {짧은돈(abs(남은돈) / 개월)}</div></div>
+</div>"""
+
+    쓴폭 = min(100, 쓴돈 / 번돈 * 100) if 번돈 else 100
+    띠 = f"""<div class="split" style="margin-top:12px">
+  <span style="width:{쓴폭:.1f}%;background:{회색}" title="쓴 돈 {돈(쓴돈)}"></span>
+  <span style="width:{100 - 쓴폭:.1f}%;background:var(--brand)" title="남은 돈 {돈(남은돈)}"></span>
+</div>
+<div class="legend">
+  <span class="it"><span class="swatch" style="border-radius:50%;background:{회색}"></span>
+    <b>쓴 돈</b> {쓴폭:.0f}%</span>
+  <span class="it"><span class="swatch" style="border-radius:50%;background:var(--brand)"></span>
+    <b>남은 돈</b> {100 - 쓴폭:.0f}%</span>
+</div>"""
+
+    벌이 = sorted(사람별.items(), key=lambda kv: -kv[1])
+    행 = []
+    for 사람, 금 in 벌이:
+        큰것 = sorted(((x["가맹점"], x["금액"]) for x in 수입들 if x["사람"] == 사람),
+                    key=lambda kv: -kv[1])
+        이름들 = []
+        for 가맹점, _ in 큰것:
+            if 가맹점 not in 이름들:
+                이름들.append(가맹점)
+        행.append(f"""<div class="row" data-kind="income" data-key="{esc(사람)}">
+  <div class="ava" style="background:{색맵.get(사람, 회색)}">{esc(머리글자(사람))}</div>
+  <div class="rmain">
+    <div class="rtitle"><span class="nm">{esc(사람)}</span></div>
+    <div class="rmeta">월평균 {짧은돈(금 // 개월)} · {esc(" · ".join(이름들[:3]))}</div>
+    <div class="track"><i style="width:{금 / 번돈 * 100:.1f}%;
+      background:{색맵.get(사람, 회색)}"></i></div>
+  </div>
+  <div class="rside"><div class="rval tnum">{돈(금)}</div>
+    <div class="rsub">{금 / 번돈 * 100:.1f}%</div></div>
+  <div class="chev"></div>
+</div>""")
+
+    최대 = max(월별.values()) or 1
+    눈금 = 최대 * 1.04
+    # 평균은 성과급 달에 끌려 올라가므로 가운뎃값을 평달 기준으로 쓴다
+    줄 = sorted(월별.get(m, 0) for m in A["달들"])
+    평달 = 줄[len(줄) // 2] if 줄 else 0
+    칸들 = []
+    for 월 in A["달들"]:
+        합 = 월별.get(월, 0)
+        튐 = 합 > 평달 * 1.1
+        칸들.append(f"""<div class="bcol" data-kind="incomemonth" data-key="{esc(월)}">
+  <div class="area">
+    <div class="sum" style="color:{'var(--brand-deep)' if 튐 else 'var(--ink3)'}">
+      {막대금액(합)}</div>
+    <div class="stk" style="height:{합 / 눈금 * 100:.2f}%">
+      <i style="height:100%;background:{'var(--brand)' if 튐 else '#9FB3C8'}"
+         title="{esc(월)} 수입 {돈(합)}"></i></div>
+  </div>
+  <div class="mon"><span class="yy">{esc(월[:4])}.</span>{int(월[5:])}월</div>
+</div>""")
+
+    return f"""{흐름}{띠}
+<div class="card pad" data-group style="margin-top:14px">{"".join(행)}
+  <div class="detail-host" hidden></div>
+</div>
+<h3 class="sub-h">언제 들어왔나</h3>
+<p class="lead">성과급이나 상여가 들어온 달은 <b>진한 색</b>으로 표시했습니다.</p>
+<div class="card" data-group><div class="plot">{눈금선(눈금, 최대)}
+  <div class="bars">{"".join(칸들)}</div></div>
+  <div class="detail-host" hidden></div></div>
+<div class="check">세로 눈금은 왼쪽에 있습니다. 막대를 누르면 그달에 들어온 돈이 하나씩 열려요.</div>"""
 
 
 def 목록_수혜자(A, 색맵):
@@ -1594,10 +1782,11 @@ def 차트_월별(A, 색맵, 이번):
         f'<span class="it"><span class="swatch" style="background:{색맵[p]}"></span>'
         f'<b>{esc(p)}</b></span>' for p in 사람들)
 
-    return (f'<div class="card" data-group><div class="bars">{"".join(칸들)}</div>'
+    return (f'<div class="card" data-group><div class="plot">{눈금선(눈금, 최대)}'
+            f'<div class="bars">{"".join(칸들)}</div></div>'
             f'<div class="legend">{범례}</div><div class="detail-host" hidden></div></div>'
-            f'<div class="check">막대를 누르면 그달 내역이 열립니다. '
-            f'막대 안의 <b>색 구간</b>을 누르면 그 사람 몫만 볼 수 있어요.</div>')
+            f'<div class="check">세로 눈금은 왼쪽에 있습니다. 막대를 누르면 그달 내역이 열려요. '
+            f'막대 안의 <b>색 구간</b>을 누르면 그 사람 몫만 볼 수 있습니다.</div>')
 
 
 def 목록_고정비(고정비들, 관측개월, 중복구독):
@@ -1819,7 +2008,9 @@ def 뉴스칸(종목명, 뉴스):
     for i, a in enumerate(기사들[:5]):
         단추.append(
             f'<button type="button" class="nchip" data-n="{esc(종목명)}|{i}">'
-            f'{esc(a.get("키워드") or "소식")}</button>')
+            f'{esc(a.get("키워드") or "소식")}'
+            f'<span class="nsrc">{esc(a.get("출처", ""))}'
+            f'{" · " + esc(a.get("날짜", "")) if a.get("날짜") else ""}</span></button>')
     속 = []
     for i, a in enumerate(기사들[:5]):
         속.append(
@@ -2306,7 +2497,7 @@ JS = """
   // ── 어디를 눌렀느냐에 따라 어떤 순서로 잘게 쪼개 보여줄지 ──────────────
   //    c = 카테고리, m = 가맹점, b = 누구 몫, p = 누가 결제, mon = 월
   var CHAIN = {
-    month:       ['c', 'm'],
+    month:       ['b', 'c', 'm'],
     monthperson: ['c', 'm'],
     beneficiary: ['c', 'm'],
     member:      ['c', 'm'],
@@ -2314,7 +2505,9 @@ JS = """
     delta:       ['mon', 'm'],
     monthcategory: ['m'],
     benecat:     ['m'],
-    fixed:       ['mon']
+    fixed:       ['mon'],
+    income:      ['mon', 'm'],
+    incomemonth: ['m']
   };
   var DIMNAME = { c: '카테고리', m: '가맹점', b: '누구 몫', p: '결제한 사람', mon: '월' };
 
@@ -2333,6 +2526,10 @@ JS = """
     if (kind === 'category') return TX.filter(function (t) { return t.c === key; });
     if (kind === 'fixed')    return TX.filter(function (t) { return t.m === key && t.p === key2; });
     if (kind === 'month')    return TX.filter(function (t) { return t.d.slice(0, 7) === key; });
+    if (kind === 'income')   return TX.filter(function (t) { return t.k === '수입' && t.p === key; });
+    if (kind === 'incomemonth') return TX.filter(function (t) {
+      return t.k === '수입' && t.d.slice(0, 7) === key;
+    });
     if (kind === 'monthcategory') return TX.filter(function (t) {
       return t.d.slice(0, 7) === key && t.c === key2;
     });
@@ -2390,7 +2587,10 @@ JS = """
     var 다음 = depth + 1 < chain.length ? DIMNAME[chain[depth + 1]] + '별' : '거래 하나하나';
 
     return keys.map(function (k) {
-      var g = map[k], id = 'g' + (++SEQ), 색 = 계단(keys.length, keys.indexOf(k));
+      var g = map[k], id = 'g' + (++SEQ);
+      // 사람으로 나눌 때는 막대에 쓴 색을 그대로 쓴다. 색이 다르면 같은 사람인 줄 모른다.
+      var 색 = ((dim === 'b' || dim === 'p') && WHOCOLOR[k])
+               ? WHOCOLOR[k] : 계단(keys.length, keys.indexOf(k));
       STORE[id] = { rows: g.rows, chain: chain, depth: depth + 1 };
       return '<div class="grp" data-id="' + id + '">' +
         '<div class="grp-row" title="누르면 ' + 다음 + '로 나뉩니다">' +
@@ -2467,16 +2667,23 @@ JS = """
     if (kind === 'monthperson') return key + ' · ' + esc(key2) + ' 몫';
     if (kind === 'monthcategory') return key + ' · ' + esc(key2);
     if (kind === 'benecat') return esc(key) + ' · ' + esc(key2);
+    if (kind === 'income') return esc(key) + ' 님이 번 돈';
+    if (kind === 'incomemonth') return key + ' 에 들어온 돈';
     return esc(key);
   }
 
   function 머리(kind, key, key2, rows) {
-    var 지출 = 0;
-    rows.forEach(function (t) { if (t.k === '지출') 지출 += -t.a; });
+    var 수입쪽 = (kind === 'income' || kind === 'incomemonth');
+    var 합 = 0;
+    rows.forEach(function (t) {
+      if (수입쪽) { if (t.k === '수입') 합 += t.a; }
+      else if (t.k === '지출') 합 += -t.a;
+    });
     var 길 = (CHAIN[kind] || []).map(function (d) { return DIMNAME[d]; });
     길.push('개별 거래');
     return '<div class="dtl-head"><span>' + 제목(kind, key, key2) + '</span>' +
-           '<span>' + rows.length + '건 · 지출 ' + 지출.toLocaleString('ko-KR') + '원</span></div>' +
+           '<span>' + rows.length + '건 · ' + (수입쪽 ? '수입 ' : '지출 ') +
+           합.toLocaleString('ko-KR') + '원</span></div>' +
            '<div class="dtl-path">누를수록 잘게 나뉩니다 · ' + 길.join(' → ') + '</div>';
   }
 
@@ -2705,11 +2912,14 @@ def html만들기(A, 거래들, 입력파일, 자산, 보험, 가족들, 종목,
 
   <nav class="tabs" role="tablist">
     <button class="tab-btn" type="button" role="tab" aria-selected="true"  data-tab="p-wealth">자산·보험{f'<span class="n">{경고수}</span>' if 경고수 else ''}</button>
-    <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="p-spend">소비</button>
-    <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="p-summary">소비 요약</button>
+    <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="p-spend">수입·지출</button>
+    <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="p-summary">이번 달</button>
   </nav>
 
   <section class="panel" id="p-summary" role="tabpanel" hidden>
+    <p class="tab-lead"><b>이번 달 우리집은 어떤가.</b>
+    {esc(이번 or "-")} 기준으로 추렸습니다. 전체 흐름은 <b>수입·지출</b>,
+    지금 가진 것은 <b>자산·보험</b> 탭에 있어요.</p>
     {히어로(A, 이번, 지난)}
     {통계카드(A, 자산, 고정비월합, 고정비연합, len(중복)//2 + len(중복구독) + 경고수)}
     {중복안내}
@@ -2726,16 +2936,22 @@ def html만들기(A, 거래들, 입력파일, 자산, 보험, 가족들, 종목,
       확인할 것 {len(점검)}가지 전부 보기 →</button>''' if 점검 else ""}
 
     <h2>이번 달 어디에 썼나</h2>
-    <p class="lead">{esc(이번 or "-")} 기준. 자세한 것은 소비 탭에서 볼 수 있어요.</p>
+    <p class="lead">{esc(이번 or "-")} 한 달만 본 것입니다.
+    전체 기간과 지난달 비교는 <b>수입·지출</b> 탭에 있어요.</p>
     {요약_이번달(A, 이번)}
-
-    <h2>해마다 견주기</h2>
-    <p class="lead">연 총액만 보면 진행 중인 해가 무조건 적게 나옵니다.
-    <b>같은 달까지 잘라서</b> 견줘야 작년보다 많이 쓰고 있는지 알 수 있어요.</p>
-    {연도비교(A)}
+    <button class="more-btn" type="button" data-goto="p-spend"
+      style="background:var(--surface);border-radius:var(--r-md);box-shadow:var(--sh);border:none;margin-top:11px">
+      전체 {len(A["달들"])}개월 흐름 보기 →</button>
   </section>
 
   <section class="panel" id="p-spend" role="tabpanel" hidden>
+  <p class="tab-lead"><b>{len(A["달들"])}개월 동안 돈이 어떻게 드나들었나.</b>
+  들어온 돈과 나간 돈을 같은 기준으로 놓고 봅니다.</p>
+
+  <h2>번 돈과 쓴 돈</h2>
+  <p class="lead">지출만 보면 많이 썼는지 알 수 없습니다.
+  <b>번 돈과 나란히</b> 놓아야 감당할 만한 소비였는지가 보여요.</p>
+  {구역_수입(A, 색맵)}
 
   <h2>월별 추이</h2>
   <p class="lead">막대 한 칸이 한 달이고, 색은 <b>누구 몫이었는지</b>를 나타냅니다.</p>
@@ -2761,9 +2977,16 @@ def html만들기(A, 거래들, 입력파일, 자산, 보험, 가족들, 종목,
   <h2>지난달과 달라진 것</h2>
   <p class="lead">{esc(지난 or "-")} 와 {esc(이번 or "-")} 를 카테고리별로 비교했습니다.</p>
   {목록_전월대비(이번, 지난, 변화)}
+
+  <h2>해마다 견주기</h2>
+  <p class="lead">연 총액만 보면 진행 중인 해가 무조건 적게 나옵니다.
+  <b>같은 달까지 잘라서</b> 견줘야 작년보다 많이 쓰고 있는지 알 수 있어요.</p>
+  {연도비교(A)}
   </section>
 
   <section class="panel" id="p-wealth" role="tabpanel">
+  <p class="tab-lead"><b>지금 이 시점에 가진 것과, 그것을 지키는 보장.</b>
+  드나든 돈이 아니라 <b>남아 있는 잔고</b> 기준입니다.</p>
 
   {f'''<h2>자산 현황</h2>
   <p class="lead">총 {돈(자산["총자산"])} · 직접 적어 넣은 자산 {len(자산["항목"])}건 기준입니다.</p>

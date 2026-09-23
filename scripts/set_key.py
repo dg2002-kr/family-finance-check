@@ -24,6 +24,14 @@ from pathlib import Path
         "생김새": "AQ. 또는 AIza 로 시작하는 긴 글자",
         "환경변수": "GEMINI_API_KEY",
     },
+    "naver": {
+        "파일": "naver.key",
+        "이름": "네이버 검색",
+        "받는곳": "https://developers.naver.com/apps/#/register  (애플리케이션 등록 → 검색 API 선택)",
+        "생김새": "Client ID 와 Client Secret 두 개",
+        "환경변수": "NAVER_CLIENT_ID",
+        "두개": True,
+    },
     "dart": {
         "파일": "dart.key",
         "이름": "금융감독원 DART",
@@ -34,15 +42,25 @@ from pathlib import Path
 }
 
 
+def 씻기(글: str) -> str:
+    """터미널에서 붙여넣을 때 Ctrl+V 가 글자()로 섞여 들어오는 일이 잦다.
+    보이지 않는 문자는 모두 걸러낸다."""
+    깨끗 = re.sub(r"[^!-~]", "", 글 or "")
+    if len(깨끗) != len((글 or "").strip()):
+        print(f"    (보이지 않는 문자 {len((글 or '').strip()) - len(깨끗)}개를 걸러냈습니다)")
+    return 깨끗
+
+
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description="API 키를 이 PC에만 저장합니다.")
     ap.add_argument("--dart", action="store_true", help="DART 키를 넣는다")
+    ap.add_argument("--naver", action="store_true", help="네이버 검색 키를 넣는다")
     ap.add_argument("--data", default="data/private")
     ap.add_argument("--show", action="store_true", help="어떤 키가 들어 있는지만 본다")
     args = ap.parse_args()
 
-    종류 = "dart" if args.dart else "gemini"
+    종류 = "naver" if args.naver else ("dart" if args.dart else "gemini")
     정보 = 곳[종류]
     자료 = Path(args.data)
     경로 = 자료 / 정보["파일"]
@@ -55,7 +73,10 @@ def main():
             상태 = []
             if p.exists() and p.read_text(encoding="utf-8").strip():
                 글 = p.read_text(encoding="utf-8").strip()
-                상태.append(f"파일에 있음 ({글[:4]}…{글[-4:]}, {len(글)}자)")
+                if len(글.splitlines()) > 1:
+                    상태.append(f"파일에 있음 (두 값, {len(글.splitlines())}줄)")
+                else:
+                    상태.append(f"파일에 있음 ({글[:4]}…{글[-4:]}, {len(글)}자)")
             if 환경:
                 상태.append(f"환경변수에 있음 ({환경[:4]}…{환경[-4:]})")
             print(f"  {v['이름']:<16} {' · '.join(상태) or '없음'}")
@@ -72,12 +93,17 @@ def main():
     print()
 
     try:
-        키 = getpass.getpass("  키: ").strip()
+        if 정보.get("두개"):
+            아이디 = 씻기(getpass.getpass("  Client ID: "))
+            비밀 = 씻기(getpass.getpass("  Client Secret: "))
+            키 = 아이디 + chr(10) + 비밀
+        else:
+            키 = 씻기(getpass.getpass("  키: "))
     except (KeyboardInterrupt, EOFError):
         print("\n  취소했습니다.")
         return 1
 
-    if not 키:
+    if not 키.replace(chr(10), ""):
         print("\n  아무것도 넣지 않아 그대로 둡니다.")
         return 1
     if len(키) < 20:
@@ -93,7 +119,12 @@ def main():
 
     print()
     print(f"  저장했습니다: {경로}")
-    print(f"  앞 4자리 {키[:4]}… 뒤 4자리 …{키[-4:]} ({len(키)}자)")
+    if 정보.get("두개"):
+        둘 = 키.split(chr(10))
+        print(f"  ID {둘[0][:3]}…({len(둘[0])}자) / Secret {둘[1][:2] if len(둘)>1 else ''}…"
+              f"({len(둘[1]) if len(둘)>1 else 0}자)")
+    else:
+        print(f"  앞 4자리 {키[:4]}… 뒤 4자리 …{키[-4:]} ({len(키)}자)")
     print()
     print("  이 파일은 깃허브에 올라가지 않습니다 (.gitignore 가 *.key 를 막습니다).")
     print("  이제 명령을 그냥 실행하면 알아서 이 키를 씁니다.")
